@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using Selfaware.Interfaces;
 using Selfaware.Models.Entities;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,22 +15,34 @@ namespace Selfaware.Services
     {
         private readonly IConfiguration _config;
         private readonly SymmetricSecurityKey _key;
+       
         
         public TokenService(IConfiguration config)
         {
             _config = config;
+          
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
         }
         
 
-        public string CreateToken(ApplicationUser user)
+        public string CreateToken(ApplicationUser user, IList<string> roles)
         {
+
+            
+
             var claims = new List<Claim>
             {
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim(JwtRegisteredClaimNames.NameId, user.Id),
             new Claim("username", user.UserName)
             };
+
+            foreach(var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256Signature);
 
             var tokenDescriptor = new SecurityTokenDescriptor

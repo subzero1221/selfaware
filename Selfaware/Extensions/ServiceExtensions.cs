@@ -8,6 +8,7 @@ using Selfaware.Interfaces;
 using Selfaware.Models.Entities;
 using Selfaware.Services;
 using System.Text;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Selfaware.Extensions
 {
@@ -80,8 +81,10 @@ namespace Selfaware.Extensions
             return services;
         }
 
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+       public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
+            services.Configure<EmailSettings>(config.GetSection("EmailSettings"));
+
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();

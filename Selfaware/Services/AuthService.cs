@@ -49,32 +49,38 @@ namespace Selfaware.Services
                 };
             }
 
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-
-           
-            byte[] tokenGeneratedBytes = Encoding.UTF8.GetBytes(token);
-            var code = WebEncoders.Base64UrlEncode(tokenGeneratedBytes);
-
-           
-            var callbackUrl = $"https://localhost:3000/confirm-email?userId={user.Id}&code={code}";
+            await _userManager.AddToRoleAsync(user, "User");
 
           
-            await _emailService.SendEmailAsync(
-                user.Email,
-                "Confirm your Stars",
-                $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>."
-            );
 
             var refreshToken = _tokenService.GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var accessToken =  _tokenService.CreateToken(user, roles);
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+
+            byte[] tokenGeneratedBytes = Encoding.UTF8.GetBytes(token);
+            var code = WebEncoders.Base64UrlEncode(tokenGeneratedBytes);
+
+
+            var callbackUrl = $"https://localhost:3000/confirm-email?userId={user.Id}&code={code}";
+
+
+            await _emailService.SendEmailAsync(
+                user.Email,
+                "Confirm your Stars",
+                $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>."
+            );
 
             return new AuthResult
             {
                 Success = true,
-                Token = _tokenService.CreateToken(user),
+                Token = accessToken,
                 RefreshToken = refreshToken
             };
         }
@@ -95,11 +101,13 @@ namespace Selfaware.Services
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var accessToken = _tokenService.CreateToken(user, roles);
 
             return new AuthResult
             {
                 Success = true,
-                Token = _tokenService.CreateToken(user),
+                Token =  accessToken,
                 RefreshToken = refreshToken
             };
         }
@@ -143,12 +151,15 @@ namespace Selfaware.Services
                 };
             }
 
+
+            var roles = await _userManager.GetRolesAsync(user);
+
             return new AuthResult
             {
                 Success = true,
-                Token = _tokenService.CreateToken(user),
+                Token = _tokenService.CreateToken(user,roles),
                 RefreshToken = newRefreshToken
-            };
+            };  
         }
 
         public async Task<AuthResult> ConfirmEmailAsync(ConfirmEmailDto model)

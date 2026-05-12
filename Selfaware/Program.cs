@@ -12,7 +12,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 
 builder.Services.AddIdentityAndAuth(builder.Configuration);
-builder.Services.AddApplicationServices();
+builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddControllers().ConfigureCustomValidation();
 
 var app = builder.Build();
