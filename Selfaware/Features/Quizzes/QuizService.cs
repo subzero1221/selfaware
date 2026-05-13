@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Selfaware.Data;
 using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Models.Entities;
+using System.Text.Json;
 
 
 namespace Selfaware.Features.Quizzes
@@ -33,7 +34,8 @@ namespace Selfaware.Features.Quizzes
                 {
                     Id = Guid.NewGuid(),
                     Text = q.Text,
-                    OptionsJson = q.OptionsJson,
+                    QuestionType = q.QuestionType,
+                    OptionsJson = JsonSerializer.Serialize(q.OptionsJson),
                     Order = index + 1
                 }).ToList()
             };

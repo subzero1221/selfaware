@@ -262,6 +262,16 @@ namespace Selfaware.Services
                 };
             }
             var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                return new AuthResult
+                {
+                    Success = false,
+                    Message = "Failed to update password",
+                    Errors = result.Errors
+                };
+            }
+
             return new AuthResult
             {
                 Success = true,

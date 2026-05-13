@@ -6,7 +6,6 @@ using Selfaware.Models.Entities;
 namespace Selfaware.Features.Quizzes
 {
     [ApiController]
-    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     public class QuizController : ControllerBase
     {
@@ -17,6 +16,7 @@ namespace Selfaware.Features.Quizzes
             _quizService = quizService;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("create-quiz")]
         public async Task<ActionResult<CustomResponse<Guid>>> createQuiz([FromBody] CreateQuizDto model)
         {

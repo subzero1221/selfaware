@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using Selfaware.Interfaces;
 using Selfaware.Models.Entities;
 using System.IdentityModel.Tokens.Jwt;
@@ -28,7 +27,8 @@ namespace Selfaware.Services
         public string CreateToken(ApplicationUser user, IList<string> roles)
         {
 
-            
+            Console.WriteLine($"System Local Time: {DateTime.Now}");
+            Console.WriteLine($"System UTC Time: {DateTime.UtcNow}");
 
             var claims = new List<Claim>
             {
@@ -73,8 +73,8 @@ namespace Selfaware.Services
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
-                ValidateAudience = false, 
-                ValidateIssuer = false,
+                ValidateAudience = true, 
+                ValidateIssuer = true,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = _key,
                 ValidateLifetime = false 
@@ -84,7 +84,7 @@ namespace Selfaware.Services
             var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
 
             if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha512Signature, StringComparison.InvariantCultureIgnoreCase))
+                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256Signature, StringComparison.InvariantCultureIgnoreCase))
             {
                 throw new SecurityTokenException("Invalid token");
             }

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -7,8 +9,9 @@ using Selfaware.Features.Quizzes;
 using Selfaware.Interfaces;
 using Selfaware.Models.Entities;
 using Selfaware.Services;
+using System.Security.Claims;
 using System.Text;
-using static Org.BouncyCastle.Math.EC.ECCurve;
+
 
 namespace Selfaware.Extensions
 {
@@ -20,30 +23,32 @@ namespace Selfaware.Extensions
         public static IServiceCollection AddIdentityAndAuth(this IServiceCollection services, IConfiguration config)
         {
 
-            services.AddIdentityApiEndpoints<ApplicationUser>()
-        .AddRoles<IdentityRole>() 
+            services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddEntityFrameworkStores<AppDbContext>();
 
             var jwtSettings = config.GetSection("Jwt");
-            var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
+            var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
             services.AddAuthentication(options => {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(options => {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtSettings["Issuer"],
                     ValidAudience = jwtSettings["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    RoleClaimType = ClaimTypes.Role,
+                   
                 };
 
-
+                options.IncludeErrorDetails = true;
                 options.Events = new JwtBearerEvents
                 {
                     OnChallenge = async context =>
@@ -57,7 +62,7 @@ namespace Selfaware.Extensions
                         await context.Response.WriteAsJsonAsync(new
                         {
                             success = false,
-                            message = "Authentication failed: You are not authorized to do this.",
+                            message = "Authentication failed: You are not authorized to do this ijoot.",
                             data = (object)null
                         });
                     },
@@ -85,6 +90,12 @@ namespace Selfaware.Extensions
         {
             services.Configure<EmailSettings>(config.GetSection("EmailSettings"));
 
+            services.AddFluentValidationAutoValidation();
+            services.AddValidatorsFromAssemblyContaining<CreateQuizDtoValidator>();
+            services.AddFluentValidationAutoValidation(config =>
+            {
+                config.DisableDataAnnotationsValidation = true;
+            });
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
