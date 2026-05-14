@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Selfaware.Features.Quizzes.DTOs;
-using Selfaware.Models.Entities;
+using Selfaware.Shared.Models;
 
 namespace Selfaware.Features.Quizzes
 {

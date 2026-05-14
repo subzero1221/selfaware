@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Selfaware.Data;
 using Selfaware.Middleware;
 using Selfaware.Extensions;
+using Selfaware.Infrastructure.Data;
 
 
 

@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
-using Selfaware.Models.Entities; 
+using Selfaware.Shared.Models; 
 
 namespace Selfaware.Middleware
 {

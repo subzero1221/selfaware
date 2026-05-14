@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Selfaware.Data;
 using Selfaware.Features.Quizzes.DTOs;
-using Selfaware.Models.Entities;
+using Selfaware.Infrastructure.Data;
+using Selfaware.Features.Quizzes.Entities;
 using System.Text.Json;
 
 

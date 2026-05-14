@@ -4,20 +4,18 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Selfaware.Data;
+using Selfaware.Features.Auth;
 using Selfaware.Features.Quizzes;
-using Selfaware.Interfaces;
-using Selfaware.Models.Entities;
-using Selfaware.Services;
+using Selfaware.Features.User.Entities;
+using Selfaware.Shared.Models;
+using Selfaware.Infrastructure.Data;
+using Selfaware.Infrastructure.Messaging;
 using System.Security.Claims;
 using System.Text;
 
 
 namespace Selfaware.Extensions
 {
-   
-
-
     public static class ServiceExtensions
     {
         public static IServiceCollection AddIdentityAndAuth(this IServiceCollection services, IConfiguration config)

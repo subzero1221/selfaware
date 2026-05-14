@@ -1,5 +1,5 @@
 ﻿using Selfaware.Features.Quizzes.DTOs;
-using Selfaware.Models.Entities;
+using Selfaware.Features.Quizzes;
 
 namespace Selfaware.Features.Quizzes
 {
