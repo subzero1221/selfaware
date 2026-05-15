@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
-using Selfaware.Infrastructure;
 using Selfaware.Features.Auth.DTOs;
 using Selfaware.Features.Auth.Entities;
 using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.User.Entities;
 using Selfaware.Infrastructure.Messaging;
+using Selfaware.Shared.Models;
 using System.Security.Claims;
 using System.Text;
+
 
 
 namespace Selfaware.Features.Auth
@@ -29,13 +30,13 @@ namespace Selfaware.Features.Auth
             _emailService = emailService;
         }
 
-        public async Task<AuthResult> SignupUserAsync(SignupDto model)
+        public async Task<ServiceResult<AuthResult>> SignupUserAsync(SignupDto model)
         {
             var user = new ApplicationUser
             {
                 UserName = model.Email,
                 Email = model.Email,
-                ZodiacSign = model.ZodiacSign
+                DisplayName = model.Email,
             };
 
             string password = model.Password;
@@ -44,11 +45,8 @@ namespace Selfaware.Features.Auth
 
             if (!result.Succeeded)
             {
-                return new AuthResult
-                {
-                    Success = false,
-                    Errors = result.Errors
-                };
+                var errorMessages = result.Errors.Select(e => e.Description);
+                return ServiceResult<AuthResult>.Failed("User creation failed", errorMessages);
             }
 
             await _userManager.AddToRoleAsync(user, "User");
@@ -79,22 +77,24 @@ namespace Selfaware.Features.Auth
                 $"Please confirm your account by <a href='{callbackUrl}'>clicking here</a>."
             );
 
-            return new AuthResult
+            var data = new AuthResult
             {
-                Success = true,
                 Token = accessToken,
                 RefreshToken = refreshToken
             };
+
+            return ServiceResult<AuthResult>.Ok(data, "Registration successful! Please check your email to confirm your account.");
+           
         }
 
-        public async Task<AuthResult> SigninAsync(SigninDto model)
+        public async Task <ServiceResult<AuthResult>> SigninAsync(SigninDto model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
-                return new AuthResult { Success = false, ErrorMessage = "Email or Password incorrect!" };
+                return ServiceResult<AuthResult>.Failed("Email or Password incorrect!");
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
             if (!result.Succeeded)
-                return new AuthResult { Success = false, ErrorMessage = "Email or Password incorrect!" };
+                return ServiceResult<AuthResult>.Failed("Email or Password incorrect!");
 
 
             var refreshToken = _tokenService.GenerateRefreshToken();
@@ -106,37 +106,35 @@ namespace Selfaware.Features.Auth
             var roles = await _userManager.GetRolesAsync(user);
             var accessToken = _tokenService.CreateToken(user, roles);
 
-            return new AuthResult
+            var data = new AuthResult
             {
-                Success = true,
                 Token =  accessToken,
                 RefreshToken = refreshToken
             };
+
+            return ServiceResult<AuthResult>.Ok(data, "Singed in Successfully");
+
         }
 
-        public async Task<AuthResult> RefreshTokenAsync(string accessToken, string refreshToken)
+        public async Task<ServiceResult<AuthResult>> RefreshTokenAsync(string accessToken, string refreshToken)
         {
             
             var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
             var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userId))
-                return new AuthResult { Success = false, Message = "Invalid token claims" };
+                return ServiceResult<AuthResult>.Failed("Invalid Token claims!");
 
             var user = await _userManager.FindByIdAsync(userId);
 
             if(user.RefreshToken != refreshToken)
             {
-                return new AuthResult { Success = false, Message = "Invalid token claims" };
+                return ServiceResult<AuthResult>.Failed("Invalid Token claims!");
             }
 
             if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
-                return new AuthResult
-                {
-                    Success = false,
-                    Message = "Your session has expired. Please login again."
-                };
+                return ServiceResult<AuthResult>.Failed("Your session expired, Please try to log in!");
             }
 
             var newRefreshToken = _tokenService.GenerateRefreshToken();
@@ -146,59 +144,53 @@ namespace Selfaware.Features.Auth
 
             if (!result.Succeeded)
             {
-                return new AuthResult
-                {
-                    Success = false,
-                    Message = "Something went wrong token"
-                };
+                var errorMessages = result.Errors.Select(e => e.Description);
+                return ServiceResult<AuthResult>.Failed("Something went wrong", errorMessages);
             }
 
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            return new AuthResult
+            var data = new AuthResult
             {
-                Success = true,
-                Token = _tokenService.CreateToken(user,roles),
-                RefreshToken = newRefreshToken
-            };  
+                Token = accessToken,
+                RefreshToken = refreshToken
+            };
+
+            return ServiceResult<AuthResult>.Ok(data, "refreshtoken updated succesfully");
         }
 
-        public async Task<AuthResult> ConfirmEmailAsync(ConfirmEmailDto model)
+
+        public async Task<ServiceResult<AuthResult>> ConfirmEmailAsync(ConfirmEmailDto model)
         {
             var user = await _userManager.FindByIdAsync(model.UserId);
             if (user == null)
             {
-                return new AuthResult { Success = false, ErrorMessage = "User not found." };
+                return ServiceResult<AuthResult>.Failed("User not found.");
             }
-            try
-            {
-               
-                var decodedCodeBytes = Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlDecode(model.Code);
-                var decodedCode = System.Text.Encoding.UTF8.GetString(decodedCodeBytes);
-                var result = await _userManager.ConfirmEmailAsync(user, decodedCode);
+          
+                var decodedCodeBytes = WebEncoders.Base64UrlDecode(model.Code);
+                var decodedCode = Encoding.UTF8.GetString(decodedCodeBytes);
 
-                if (result.Succeeded)
+                var result = await _userManager.ConfirmEmailAsync(user, decodedCode);
+                if (!result.Succeeded)
                 {
 
-                    return new AuthResult { Success = true, Message = "Email confirmed successfully!" };
+                    return ServiceResult<AuthResult>.Failed("Email confirmation failed", result.Errors.Select(e => e.Description));
                 }
+              return ServiceResult<AuthResult>.Ok(null , "Email confirmed Succesfully");
 
-                
-                return new AuthResult { Success = false, ErrorMessage = "Invalid or expired token." };
-            }
-            catch (Exception)
-            {
-                return new AuthResult { Success = false, ErrorMessage = "Format of the token is invalid." };
-            }
         }
 
-        public async Task<AuthResult> ForgotPasswordAsync(ForgotPasswordDto model)
+            
+        
+
+        public async Task<ServiceResult<AuthResult>> ForgotPasswordAsync(ForgotPasswordDto model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
-                return new AuthResult { Success = true, Message = "If that email is in our system, you'll receive a link shortly." };
+                return ServiceResult<AuthResult>.Ok(null, "If that email is in our system, you'll receive a link shortly."); 
             }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
@@ -214,71 +206,47 @@ namespace Selfaware.Features.Auth
                 $"Click <a href='{callbackUrl}'>here</a> to reset your password. This link expires in 2 hours."
             );
 
-            return new AuthResult
-            {   
-                Success=true,
-                Message="Reset link sent to your mail."
-            };
+            return ServiceResult<AuthResult>.Ok(null, "Password reset link sent to your email.");
         }
-        public async Task<AuthResult> ResetPasswordAsync(ResetPasswordDto model)
+
+        public async Task<ServiceResult<AuthResult>> ResetPasswordAsync(ResetPasswordDto model)
         {
             var user = await _userManager.FindByIdAsync(model.UserId);
             if (user == null)
             {
-               
-                return new AuthResult { Success = false, Message = "Invalid request." };
+                return ServiceResult<AuthResult>.Failed("User not found.");
             }
 
-            try
-            {
+           
             
                 var decodedCodeBytes = WebEncoders.Base64UrlDecode(model.Token);
                 var decodedToken = Encoding.UTF8.GetString(decodedCodeBytes);
                 var result = await _userManager.ResetPasswordAsync(user, decodedToken, model.NewPassword);
 
-                if (result.Succeeded)
+                if (!result.Succeeded)
                 {
-                    return new AuthResult { Success = true, Message = "Password has been reset successfully!" };
+                    var errorMessages = result.Errors.Select(e => e.Description);
+                    return ServiceResult<AuthResult>.Failed("Could not reset password.", errorMessages);
                 }
 
-                return new AuthResult
-                {
-                    Success = false,
-                    Errors = result.Errors,
-                    Message = "Failed to reset password. The link might be expired."
-                };
-            }
-            catch (Exception)
-            {
-                return new AuthResult { Success = false, Message = "Invalid token format." };
-            }
+              
+              return ServiceResult<AuthResult>.Ok(null,"Password reset succesfully");
+            
         }
-        public async Task<AuthResult> ChangePasswordAsync(ChangePasswordDto model, string userId) {
+        public async Task<ServiceResult<AuthResult>> ChangePasswordAsync(ChangePasswordDto model, string userId) {
             var user =  await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return new AuthResult
-                {
-                    Success = false,
-                    Message = "User not found, try again later"
-                };
+                return ServiceResult<AuthResult>.Failed("User not found.");
             }
             var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
             if (!result.Succeeded)
             {
-                return new AuthResult
-                {
-                    Success = false,
-                    Message = "Failed to update password",
-                    Errors = result.Errors
-                };
+                var errorMessages = result.Errors.Select(e => e.Description);
+                return ServiceResult<AuthResult>.Failed("Could not change password.", errorMessages);
             }
 
-            return new AuthResult
-            {
-                Success = true,
-                Message = "Password updated succesfully"
-            };
+            return ServiceResult<AuthResult>.Ok(null, "Password changed succesfully");
 
         }
     }

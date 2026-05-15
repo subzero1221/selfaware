@@ -23,40 +23,46 @@ namespace Selfaware.Middleware
             {
                 context.Response.ContentType = "application/json";
 
-                var statusCode = HttpStatusCode.InternalServerError; 
-                var message = "Something went wrong on our end.";
+            
+                var statusCode = HttpStatusCode.InternalServerError;
+                var displayMessage = "A server error occurred.";
 
-                if (ex is ArgumentException || ex is InvalidOperationException)
+            
+                switch (ex)
                 {
-           
-                    statusCode = HttpStatusCode.BadRequest; 
-                    message = ex.Message;
-                }
-                else if (ex is UnauthorizedAccessException)
-                {
-                 statusCode = HttpStatusCode.Unauthorized; 
-                 message = "You are not authorized to do this.";
-                }
-                else if(ex is KeyNotFoundException)
-                {
-                    statusCode = HttpStatusCode.NotFound;
-                    message = ex.Message;
-                }else if(ex is TimeoutException)
-                {
-                    statusCode = HttpStatusCode.GatewayTimeout;
-                    message = ex.Message;  
+                    case ArgumentException:
+                    case InvalidOperationException:
+                    case FormatException: 
+                        statusCode = HttpStatusCode.BadRequest;
+                        displayMessage = "Invalid request data.";
+                        break;
+                    case UnauthorizedAccessException:
+                        statusCode = HttpStatusCode.Unauthorized;
+                        displayMessage = "Access denied.";
+                        break;
+                    case KeyNotFoundException:
+                        statusCode = HttpStatusCode.NotFound;
+                        displayMessage = "The requested resource was not found.";
+                        break;
+                    case TimeoutException:
+                        statusCode = HttpStatusCode.GatewayTimeout;
+                        displayMessage = "The operation timed out.";
+                        break;
                 }
 
                 context.Response.StatusCode = (int)statusCode;
 
-                var response = new CustomResponse<object>
-                {
-                    Success = false,
-                    Message = "A server error occurred.",
-                    Errors = new List<string> { ex.Message }
-                };
+               
+                var response = CustomResponse<object>.ErrorResponse(
+                    displayMessage,
+                    new List<string> { ex.Message }
+                );
 
-                var json = JsonSerializer.Serialize(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
                 await context.Response.WriteAsync(json);
             }
         }

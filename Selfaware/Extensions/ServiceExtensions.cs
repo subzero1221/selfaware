@@ -12,6 +12,7 @@ using Selfaware.Infrastructure.Data;
 using Selfaware.Infrastructure.Messaging;
 using System.Security.Claims;
 using System.Text;
+using Selfaware.Features.User;
 
 
 namespace Selfaware.Extensions
@@ -57,12 +58,9 @@ namespace Selfaware.Extensions
                         context.Response.StatusCode = 401;
                         context.Response.ContentType = "application/json";
 
-                        await context.Response.WriteAsJsonAsync(new
-                        {
-                            success = false,
-                            message = "Authentication failed: You are not authorized to do this ijoot.",
-                            data = (object)null
-                        });
+                        var response = CustomResponse<object>.ErrorResponse("Authentication failed: You are not authorized.");
+
+                        await context.Response.WriteAsJsonAsync(response);
                     },
                     OnForbidden = async context =>
                     {
@@ -70,12 +68,9 @@ namespace Selfaware.Extensions
                         context.Response.StatusCode = 403;
                         context.Response.ContentType = "application/json";
 
-                        await context.Response.WriteAsJsonAsync(new
-                        {
-                            success = false,
-                            message = "Access denied: You do not have the required permissions (Admin).",
-                            data = (object)null
-                        });
+                        var response = CustomResponse<object>.ErrorResponse("Access denied: You do not have the required permissions.");
+
+                        await context.Response.WriteAsJsonAsync(response);
                     }
                 };
 
@@ -98,6 +93,7 @@ namespace Selfaware.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IQuizService, QuizService>();
+            services.AddScoped<IUserService, UserService>();
             return services;
         }
         public static IMvcBuilder ConfigureCustomValidation(this IMvcBuilder mvcBuilder)

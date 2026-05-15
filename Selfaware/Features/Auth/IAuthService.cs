@@ -1,6 +1,7 @@
 ﻿using Selfaware.Features.Auth.DTOs;
 using Selfaware.Features.Auth.Entities;
 using Selfaware.Features.Quizzes.DTOs;
+using Selfaware.Shared.Models;
 
 namespace Selfaware.Features.Auth
 {
@@ -8,13 +9,13 @@ namespace Selfaware.Features.Auth
     
     public interface IAuthService
     {
-        Task<AuthResult> SignupUserAsync(SignupDto model);
-        Task<AuthResult> SigninAsync(SigninDto model);
-        Task<AuthResult> ConfirmEmailAsync(ConfirmEmailDto model);
-        Task<AuthResult> ForgotPasswordAsync(ForgotPasswordDto model);
-        Task<AuthResult> ResetPasswordAsync(ResetPasswordDto model);
-        Task<AuthResult> ChangePasswordAsync(ChangePasswordDto model, string userId);
-        Task<AuthResult> RefreshTokenAsync(string accessToken, string refreshToken);
+        Task<ServiceResult<AuthResult>> SignupUserAsync(SignupDto model);
+        Task<ServiceResult<AuthResult>> SigninAsync(SigninDto model);
+        Task<ServiceResult<AuthResult>> ConfirmEmailAsync(ConfirmEmailDto model);
+        Task<ServiceResult<AuthResult>> ForgotPasswordAsync(ForgotPasswordDto model);
+        Task<ServiceResult<AuthResult>> ResetPasswordAsync(ResetPasswordDto model);
+        Task<ServiceResult<AuthResult>> ChangePasswordAsync(ChangePasswordDto model, string userId);
+        Task<ServiceResult<AuthResult>> RefreshTokenAsync(string accessToken, string refreshToken);
     }
 }
 
