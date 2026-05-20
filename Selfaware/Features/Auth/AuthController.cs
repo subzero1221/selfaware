@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Selfaware.Features.Auth.DTOs;
 using Selfaware.Features.Auth.Entities;
-using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Shared.Models;
 using System.Security.Claims;
 
@@ -34,20 +32,7 @@ namespace Selfaware.Features.Auth
             var result = await _authService.SignupUserAsync(model);
             if (!result.Success)
             {
-
                 return BadRequest(CustomResponse<AuthResult>.ErrorResponse(result.Message, result.Errors));
-
-            }
-
-            if (!isMobile)
-            {
-                Response.Cookies.Append("refreshToken", result.Data!.RefreshToken, new CookieOptions
-                {
-                    HttpOnly = false,
-                    Secure = true,
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTimeOffset.UtcNow.AddDays(7)
-                });
             }
 
             return Ok(CustomResponse<AuthResult>.SuccessResponse(result.Data, result.Message));
@@ -70,10 +55,18 @@ namespace Selfaware.Features.Auth
             {
                 Response.Cookies.Append("refreshToken", result.Data.RefreshToken!, new CookieOptions
                 {
-                    HttpOnly = false,
-                    Secure = true,
+                    HttpOnly = true,
+                    Secure = false,
                     SameSite = SameSiteMode.Lax,
                     Expires = DateTimeOffset.UtcNow.AddDays(7)
+                });
+
+                Response.Cookies.Append("accessToken", result.Data.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false,
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTime.UtcNow.AddMinutes(15)
                 });
             }
 
@@ -85,7 +78,8 @@ namespace Selfaware.Features.Auth
         [HttpPost("signout")]
         public IActionResult Signout()
         {
-            Response.Cookies.Delete("jwt");
+            Response.Cookies.Delete("accessToken");
+            Response.Cookies.Delete("refreshToken");
            return Ok(CustomResponse<AuthResult>.SuccessResponse(null, "signed out succesfully"));
         }
 
@@ -136,16 +130,36 @@ namespace Selfaware.Features.Auth
             return Ok(CustomResponse<AuthResult>.SuccessResponse(null, "Refresh token success"));
         }
 
-        [HttpGet("confirm-email")]
-        public async Task<IActionResult> ConfirmEmail([FromQuery] ConfirmEmailDto model)
+        [HttpPost("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailDto model)
         {
-           
-            
+            var platform = Request.Headers["X-Client-Platform"].ToString();
+            bool isMobile = platform == "Mobile-App";
+
             var result = await _authService.ConfirmEmailAsync(model);
 
             if (!result.Success)
             {
-                return BadRequest(CustomResponse<AuthResult>.ErrorResponse("Refresh token not provided"));
+                return BadRequest(CustomResponse<AuthResult>.ErrorResponse(result.Message));
+            }
+
+            if (!isMobile)
+            {
+                Response.Cookies.Append("refreshToken", result.Data!.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddDays(7)
+                });
+
+                Response.Cookies.Append("accessToken", result.Data!.Token, new CookieOptions
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddDays(7)
+                });
             }
 
             return Ok(CustomResponse<AuthResult>.SuccessResponse(null, result.Message));

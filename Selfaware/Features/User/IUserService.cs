@@ -7,5 +7,7 @@ namespace Selfaware.Features.User
     {
         Task<ServiceResult<UserDto>> GetMeAsync(string userId);
         Task<ServiceResult<UserDto>> UpdateMeAsync(string userId, UpdateUserDto dto);
+
+        Task<ServiceResult<UserDto>> DeleteMeAsync(string userId);
     }
 }

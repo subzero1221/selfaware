@@ -16,7 +16,8 @@ builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddControllers().ConfigureCustomValidation();
 
 var app = builder.Build();
-
+app.UseRouting();
+app.UseCors("FrontendPolicy");
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();

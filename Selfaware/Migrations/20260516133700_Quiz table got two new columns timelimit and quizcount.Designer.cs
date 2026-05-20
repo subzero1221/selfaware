@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Selfaware.Infrastructure.Data;
@@ -11,9 +12,11 @@ using Selfaware.Infrastructure.Data;
 namespace Selfaware.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260516133700_Quiz table got two new columns timelimit and quizcount")]
+    partial class Quiztablegottwonewcolumnstimelimitandquizcount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -160,9 +163,6 @@ namespace Selfaware.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("CorrectAnswerIndex")
-                        .HasColumnType("integer");
-
                     b.Property<string>("OptionsJson")
                         .IsRequired()
                         .HasColumnType("text");
@@ -171,7 +171,6 @@ namespace Selfaware.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("QuestionType")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<Guid>("QuizId")
@@ -203,10 +202,6 @@ namespace Selfaware.Migrations
 
                     b.Property<int>("QuestionCount")
                         .HasColumnType("integer");
-
-                    b.Property<string>("QuizType")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -263,6 +258,7 @@ namespace Selfaware.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Bio")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("BirthDate")

@@ -23,7 +23,7 @@ namespace Selfaware.Extensions
         {
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
-        .AddEntityFrameworkStores<AppDbContext>();
+        .AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 
             var jwtSettings = config.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
@@ -50,6 +50,14 @@ namespace Selfaware.Extensions
                 options.IncludeErrorDetails = true;
                 options.Events = new JwtBearerEvents
                 {
+                    OnMessageReceived = context =>
+                    {    
+                        if (context.Request.Cookies.TryGetValue("accessToken", out string token))
+                        {
+                            context.Token = token; 
+                        }
+                        return Task.CompletedTask;
+                    },
                     OnChallenge = async context =>
                     {
 
@@ -81,6 +89,19 @@ namespace Selfaware.Extensions
 
        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
+
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("FrontendPolicy", policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000") 
+                          .AllowAnyMethod()                    
+                          .AllowAnyHeader()                   
+                          .AllowCredentials();                 
+                });
+            });
+
             services.Configure<EmailSettings>(config.GetSection("EmailSettings"));
 
             services.AddFluentValidationAutoValidation();
@@ -89,11 +110,17 @@ namespace Selfaware.Extensions
             {
                 config.DisableDataAnnotationsValidation = true;
             });
+
+            //icocxle accrooss that specific HTTP req
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IQuizService, QuizService>();
             services.AddScoped<IUserService, UserService>();
+
+            //Internal toolebi gaakete saqme da daibride
+            services.AddTransient<IQuizCsvParser, QuizCsvParser>();
+
             return services;
         }
         public static IMvcBuilder ConfigureCustomValidation(this IMvcBuilder mvcBuilder)

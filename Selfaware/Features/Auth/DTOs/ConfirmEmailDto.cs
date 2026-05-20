@@ -1,4 +1,4 @@
-﻿namespace Selfaware.Features.Quizzes.DTOs
+﻿namespace Selfaware.Features.Auth.DTOs
 {
     
         public class ConfirmEmailDto

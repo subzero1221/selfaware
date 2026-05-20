@@ -66,5 +66,29 @@ namespace Selfaware.Features.User
             return ServiceResult<UserDto>.Ok(updatedUserDto, "User updated successfully");
         }
 
+        public async Task<ServiceResult<UserDto>> DeleteMeAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return ServiceResult<UserDto>.Failed("User not found");
+
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                DisplayName = user.DisplayName,
+                Email = user.Email
+            };
+
+
+            user.IsActive = false;
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var errorMessages = result.Errors.Select(e => e.Description);
+                return ServiceResult<UserDto>.Failed("Failed to deactivate account.", errorMessages);
+            }
+
+            return ServiceResult<UserDto>.Ok(userDto, "Your account has been deactivated successfully");
+        }
+
     }
 }

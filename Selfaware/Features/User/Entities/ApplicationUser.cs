@@ -9,7 +9,7 @@ namespace Selfaware.Features.User.Entities
 
         public string DisplayName { get; set; }
 
-        public string Bio { get; set; }
+        public string ?Bio { get; set; }
 
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }

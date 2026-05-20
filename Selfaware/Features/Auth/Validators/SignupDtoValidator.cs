@@ -18,6 +18,9 @@ public class SignUpDtoValidator : AbstractValidator<SignupDto>
             .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter.")
             .Matches(@"[0-9]").WithMessage("Password must contain at least one number.");
 
-  
+        RuleFor(x => x.PasswordConfirm)
+            .NotEmpty().WithMessage("პაროლის განმეორება აუცილებელია.")
+            .Equal(x => x.Password).WithMessage("პაროლები არ ემთხვევა ერთმანეთს.");
+
     }
 }

@@ -1,10 +1,11 @@
 ﻿using Selfaware.Features.Quizzes.DTOs;
-using Selfaware.Features.Quizzes;
+using Selfaware.Shared.Models;
 
 namespace Selfaware.Features.Quizzes
 {
     public interface IQuizService
     {
-        Task<Guid> CreateQuizAsync(CreateQuizDto model);
+        Task<ServiceResult<QuizDto>> CreateQuizAsync(CreateQuizDto model);
+        Task<ServiceResult<QuizUploadedResponseDto>> BulkImportQuizAsync(string title, int timeLimitInMinutes, Stream fileStream, string Description);
     }
 }

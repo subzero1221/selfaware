@@ -1,6 +1,5 @@
 ﻿using Selfaware.Features.Auth.DTOs;
 using Selfaware.Features.Auth.Entities;
-using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Shared.Models;
 
 namespace Selfaware.Features.Auth

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Selfaware.Features.Auth.Entities;
 using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Shared.Models;
 
@@ -18,18 +19,26 @@ namespace Selfaware.Features.Quizzes
 
         [Authorize(Roles = "Admin")]
         [HttpPost("create-quiz")]
-        public async Task<ActionResult<CustomResponse<Guid>>> createQuiz([FromBody] CreateQuizDto model)
+        public async Task<ActionResult> createQuiz([FromBody] CreateQuizDto dto)
         {
 
-            Guid newQuizId = await _quizService.CreateQuizAsync(model);
+            var result = await _quizService.CreateQuizAsync(dto);
 
-            return Ok(new CustomResponse<Guid>
-            {
-                Success = true,
-                Message = "Quiz created successfully",
-                Data = newQuizId
-            });
+            return Ok(CustomResponse<QuizDto>.SuccessResponse( result.Data, result.Message ));
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPost("bulk-create")]
+        public async Task<ActionResult> bulkQuizUpload([FromForm] BulkQuizUploadDto dto)
+        {
+            if (dto.File == null || dto.File.Length == 0) return BadRequest(CustomResponse<QuizUploadedResponseDto>.ErrorResponse("No file was uploaded"));
+            using var stream = dto.File.OpenReadStream();
+            var createdQuiz = await _quizService.BulkImportQuizAsync(dto.Title, dto.TimeLimitInMinutes, stream, dto.Description);
+            if (!createdQuiz.Success)
+                return BadRequest(CustomResponse<QuizUploadedResponseDto>.ErrorResponse(createdQuiz.Message ?? "Failed to extract questions."));
+
+            return Ok(CustomResponse<QuizUploadedResponseDto>.SuccessResponse(createdQuiz.Data, "Quiz uploaded successfully"));
+        }
+         
     }
 }

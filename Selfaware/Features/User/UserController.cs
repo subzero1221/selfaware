@@ -36,7 +36,7 @@ namespace Selfaware.Features.User
 
         [Authorize]
         [HttpPatch("me")]
-        public async Task<IActionResult> updateMe([FromBody] UpdateUserDto dto)
+        public async Task<IActionResult> UpdateMe([FromBody] UpdateUserDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -48,6 +48,24 @@ namespace Selfaware.Features.User
 
 
             return Ok(CustomResponse<UserDto>.SuccessResponse(result.Data, result.Message));
+        }
+        [Authorize]
+        [HttpDelete("me")]
+        public async Task<IActionResult> DeactivateMe()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(CustomResponse<UserDto>.ErrorResponse("User ID not found in token. are u chatlaxob?"));
+            }
+
+            var result = await _userService.DeleteMeAsync(userId);
+            if (!result.Success)
+            {
+                return BadRequest(CustomResponse<UserDto>.ErrorResponse(result.Message, result.Errors));
+            }
+
+            return Ok(CustomResponse<UserDto>.SuccessResponse(null, result.Message));
         }
     }
 }
