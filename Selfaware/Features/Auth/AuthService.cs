@@ -132,7 +132,7 @@ namespace Selfaware.Features.Auth
             var data = new AuthResult
             {
                 Token = newAccessToken,
-                RefreshToken = refreshToken
+                RefreshToken = newRefreshToken
             };
 
             return ServiceResult<AuthResult>.Ok(data, "refreshtoken updated succesfully");

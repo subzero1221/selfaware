@@ -97,13 +97,13 @@ namespace Selfaware.Features.Auth
             return Ok(CustomResponse<AuthResult>.SuccessResponse(null, "signed out succesfully"));
         }
 
-        [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh(TokenDto model)
+        [HttpGet("refresh")]
+        public async Task<IActionResult> Refresh()
         {
             //ვიგებ რექუიესტი მობილურიდანაა თუ ბრაუზერიდან 
             var platform = Request.Headers["X-Client-Platform"].ToString();
-            bool isMobile = platform == "Mobile-App";
-            string? refreshToken = isMobile? model.RefreshToken : Request.Cookies["refreshToken"];
+            bool isMobile = platform == "Mobile-App"; 
+            string? refreshToken =  Request.Cookies["refreshToken"];
 
             if (string.IsNullOrEmpty(refreshToken))
             {
@@ -115,12 +115,18 @@ namespace Selfaware.Features.Auth
             //ვარეფრეშებ ტოკენს
             var result = await _authService.RefreshTokenAsync(refreshToken);
             if (!result.Success)
-                return Unauthorized(new CustomResponse<string> { Message = "Refresh failed" });
+                return Unauthorized(CustomResponse<string>.ErrorResponse( result.Message, result.Errors));
 
             //თუ რექვესტი მობილურიდან არაა ვაგზავნი რეფრეშ ტოკენს როგორც ქუქის
             if (!isMobile)
             {
-                
+                Response.Cookies.Append("refreshToken", result.Data.RefreshToken!, new CookieOptions
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddDays(7)
+                });
 
                 Response.Cookies.Append("accessToken", result.Data.Token!, new CookieOptions
                 {
