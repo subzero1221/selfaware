@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Selfaware.Features.Auth.DTOs;
 using Selfaware.Features.Auth.Entities;
@@ -58,8 +59,9 @@ namespace Selfaware.Features.Auth
                     HttpOnly = true,
                     Secure = false,
                     SameSite = SameSiteMode.Lax,
-                    Expires = DateTimeOffset.UtcNow.AddDays(7)
+                    Expires = DateTime.UtcNow.AddDays(7)
                 });
+
 
                 Response.Cookies.Append("accessToken", result.Data.Token, new CookieOptions
                 {
@@ -96,7 +98,7 @@ namespace Selfaware.Features.Auth
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] TokenDto model)
+        public async Task<IActionResult> Refresh(TokenDto model)
         {
             //ვიგებ რექუიესტი მობილურიდანაა თუ ბრაუზერიდან 
             var platform = Request.Headers["X-Client-Platform"].ToString();
@@ -108,22 +110,24 @@ namespace Selfaware.Features.Auth
                 return Unauthorized(CustomResponse<AuthResult>.ErrorResponse("Refresh token not provided"));
             }
 
-            var accessToken = model.AccessToken;
+            
           
             //ვარეფრეშებ ტოკენს
-            var result = await _authService.RefreshTokenAsync(accessToken, refreshToken);
+            var result = await _authService.RefreshTokenAsync(refreshToken);
             if (!result.Success)
                 return Unauthorized(new CustomResponse<string> { Message = "Refresh failed" });
 
             //თუ რექვესტი მობილურიდან არაა ვაგზავნი რეფრეშ ტოკენს როგორც ქუქის
             if (!isMobile)
             {
-                Response.Cookies.Append("refreshToken", result.Data.RefreshToken!, new CookieOptions
+                
+
+                Response.Cookies.Append("accessToken", result.Data.Token!, new CookieOptions
                 {
                     HttpOnly = false,
                     Secure = true,
                     SameSite = SameSiteMode.Lax,
-                    Expires = DateTimeOffset.UtcNow.AddDays(7)
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(15)
                 });
             }
 

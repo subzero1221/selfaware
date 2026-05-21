@@ -6,6 +6,7 @@ using Selfaware.Features.User.Entities;
 using Selfaware.Infrastructure.Messaging;
 using Selfaware.Shared.Models;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 
 
@@ -103,25 +104,14 @@ namespace Selfaware.Features.Auth
 
         }
 
-        public async Task<ServiceResult<AuthResult>> RefreshTokenAsync(string accessToken, string refreshToken)
+        public async Task<ServiceResult<AuthResult>> RefreshTokenAsync(string refreshToken)
         {
 
-            var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
-            var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
 
-            if (string.IsNullOrEmpty(userId))
-                return ServiceResult<AuthResult>.Failed("Invalid Token claims!");
-
-            var user = await _userManager.FindByIdAsync(userId);
-
-            if (user.RefreshToken != refreshToken)
+            if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
-                return ServiceResult<AuthResult>.Failed("Invalid Token claims!");
-            }
-
-            if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-            {
-                return ServiceResult<AuthResult>.Failed("Your session expired, Please try to log in!");
+                return ServiceResult<AuthResult>.Failed("Session expired or invalid token.");
             }
 
             var newRefreshToken = _tokenService.GenerateRefreshToken();
@@ -137,10 +127,11 @@ namespace Selfaware.Features.Auth
 
 
             var roles = await _userManager.GetRolesAsync(user);
+            var newAccessToken = _tokenService.CreateToken(user, roles);
 
             var data = new AuthResult
             {
-                Token = accessToken,
+                Token = newAccessToken,
                 RefreshToken = refreshToken
             };
 

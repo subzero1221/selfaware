@@ -14,7 +14,7 @@ namespace Selfaware.Features.Auth
         Task<ServiceResult<AuthResult>> ForgotPasswordAsync(ForgotPasswordDto model);
         Task<ServiceResult<AuthResult>> ResetPasswordAsync(ResetPasswordDto model);
         Task<ServiceResult<AuthResult>> ChangePasswordAsync(ChangePasswordDto model, string userId);
-        Task<ServiceResult<AuthResult>> RefreshTokenAsync(string accessToken, string refreshToken);
+        Task<ServiceResult<AuthResult>> RefreshTokenAsync(string refreshToken);
     }
 }
 
