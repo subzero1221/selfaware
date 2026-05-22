@@ -1,4 +1,6 @@
-﻿namespace Selfaware.Features.Quizzes.Entities
+﻿using Selfaware.Features.User.Entities;
+
+namespace Selfaware.Features.Quizzes.Entities
 {
     public class Quiz
     {
@@ -14,6 +16,8 @@
         public string QuizType { get; set; } = "Knowledge";
 
         public List<Question> Questions { get; set; } = new();
+        public string CreatedById { get; set; } = string.Empty; 
+        public ApplicationUser CreatedBy { get; set; } = null!; 
     }
 }
 

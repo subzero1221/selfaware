@@ -1,5 +1,4 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Selfaware.Features.Auth.DTOs;
 using Selfaware.Features.Auth.Entities;
@@ -94,7 +93,7 @@ namespace Selfaware.Features.Auth
             {
                 return Unauthorized(CustomResponse<AuthResult>.ErrorResponse("User not found")); 
             }
-            return Ok(CustomResponse<AuthResult>.SuccessResponse(null, "signed out succesfully"));
+            return Ok(CustomResponse<AuthResult>.SuccessResponse(null, "access given"));
         }
 
         [HttpGet("refresh")]
@@ -122,16 +121,16 @@ namespace Selfaware.Features.Auth
             {
                 Response.Cookies.Append("refreshToken", result.Data.RefreshToken!, new CookieOptions
                 {
-                    HttpOnly = false,
-                    Secure = true,
+                    HttpOnly = true,
+                    Secure = false,
                     SameSite = SameSiteMode.Lax,
                     Expires = DateTimeOffset.UtcNow.AddDays(7)
                 });
 
                 Response.Cookies.Append("accessToken", result.Data.Token!, new CookieOptions
                 {
-                    HttpOnly = false,
-                    Secure = true,
+                    HttpOnly = true,
+                    Secure = false,
                     SameSite = SameSiteMode.Lax,
                     Expires = DateTimeOffset.UtcNow.AddMinutes(15)
                 });
