@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Selfaware.Features.Quizzes.DTOs;
+using Selfaware.Features.Quizzes.DTOs.Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Shared.Models;
 using System.Security.Claims;
 
@@ -12,14 +12,17 @@ namespace Selfaware.Features.Quizzes
     public class QuizController : ControllerBase
     {
         private readonly IQuizService _quizService;
+        private readonly IQuizGeneratorService _quizGeneratorService;
+        
 
-        public QuizController(IQuizService quizService)
+        public QuizController(IQuizService quizService, IQuizGeneratorService quizGeneratorService)
         {
             _quizService = quizService;
+            _quizGeneratorService = quizGeneratorService;
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost("create-quiz")]
+        [HttpPost]
         public async Task<ActionResult> createQuiz([FromBody] CreateQuizDto dto)
         {
 
@@ -28,9 +31,9 @@ namespace Selfaware.Features.Quizzes
             return Ok(CustomResponse<QuizDto>.SuccessResponse( result.Data, result.Message ));
         }
 
-        [Authorize(Roles = "Admin")]
+        /*[Authorize(Roles = "Admin")]
         [HttpPost("bulk-create")]
-        public async Task<ActionResult> bulkQuizUpload([FromForm] BulkQuizUploadDto dto)
+        public async Task<ActionResult> bulkQuizUpload([FromForm] BulkQuizUpload dto)
         {
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -41,7 +44,7 @@ namespace Selfaware.Features.Quizzes
                 return BadRequest(CustomResponse<QuizSummaryDto>.ErrorResponse(createdQuiz.Message ?? "Failed to extract questions."));
 
             return Ok(CustomResponse<QuizSummaryDto>.SuccessResponse(createdQuiz.Data, createdQuiz.Message));
-        }
+        }*/
 
         [Authorize(Roles="Admin")]
         [HttpGet]
@@ -56,7 +59,22 @@ namespace Selfaware.Features.Quizzes
                 return NotFound(CustomResponse<string>.ErrorResponse("Quiz not found."));
             }
 
-            return Ok(CustomResponse<GetMyQuizzesDto>.SuccessResponse(result.Data, result.Message));
+            return Ok(CustomResponse<GetQuizzesDto>.SuccessResponse(result.Data, result.Message));
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("ai-generate")]
+        public async Task<ActionResult> ExtractExistingQuiz([FromForm] ExtractQuizRequestDto dto, CancellationToken cancellationToken)
+        {
+           
+            var result = await _quizGeneratorService.ExtractExistingQuizAsync(dto, cancellationToken);
+
+            if (!result.Success)
+            {
+                BadRequest(CustomResponse<QuizDetailsDto>.ErrorResponse(result.Message));
+            }
+
+            return Ok(CustomResponse<QuizDetailsDto>.SuccessResponse(result.Data, "Quiz generated Succesfully"));
         }
 
         [Authorize(Roles ="Admin")]

@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Selfaware.Features.Quizzes.DTOs;
-using Selfaware.Infrastructure.Data;
+using Selfaware.Features.Quizzes.DTOs.Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Quizzes.Entities;
-using System.Text.Json;
+using Selfaware.Features.Quizzes.Parsers;
+using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Models;
 
 
@@ -23,6 +24,7 @@ namespace Selfaware.Features.Quizzes
 
         public async Task<ServiceResult<QuizDto>> CreateQuizAsync(CreateQuizDto dto)
         {
+
             bool exists = await _context.Quizzes.AnyAsync(q => q.Title == dto.Title);
             if (exists) return ServiceResult<QuizDto>.Failed("A quiz with this title already exists.");
 
@@ -33,13 +35,18 @@ namespace Selfaware.Features.Quizzes
                 Description = dto.Description,
                 QuestionCount = dto.Questions.Count,
                 TimeLimit = TimeSpan.FromMinutes(dto.TimeLimitInMinutes),
-                Questions = dto.Questions.Select((q, index) => new Question
+                Questions = dto.Questions.Select((question, index) => new Question
                 {
                     Id = Guid.NewGuid(),
-                    Text = q.Text,
-                    QuestionType = q.QuestionType,
-                    OptionsJson = JsonSerializer.Serialize(q.OptionsJson),
-                    Order = index + 1
+                    Text = question.Text,
+                    Type = question.QuestionType,
+                    Order = index + 1,
+                    Options = question.Options.Select((o, index) => new Option
+                    {
+                        Text = o.Text,
+                        Score = o.Score
+                    }).ToList()
+
                 }).ToList()
             };
 
@@ -47,16 +54,16 @@ namespace Selfaware.Features.Quizzes
             await _context.SaveChangesAsync();
 
             return ServiceResult<QuizDto>.Ok(new QuizDto
-            {
-                Id = quiz.Id,
-                Title = quiz.Title,
-                Description = quiz.Description,
-                TimeLimitInMinutes = dto.TimeLimitInMinutes,
-                QuestionCount = dto.QuestionsCount,
-            }, "Quiz created successfully");
+            (
+                QuizId : quiz.Id,
+                Title : quiz.Title,
+                Description : quiz.Description,
+                TimeLimitInMinutes : dto.TimeLimitInMinutes,
+                QuestionCount : quiz.QuestionCount
+            ), "Quiz created successfully");
         }
 
-        public async Task<ServiceResult<QuizSummaryDto>> BulkImportQuizAsync(string title, int timeLimitInMinutes, Stream fileStream, string Description, string userId)
+       /* public async Task<ServiceResult<QuizSummaryDto>> BulkImportQuizAsync(string title, int timeLimitInMinutes, Stream fileStream, string Description, string userId)
         {
             var parsedQuestions = _csvParser.ParseQuestionsFromStream(fileStream);
             if (!parsedQuestions.Any()) return ServiceResult<QuizSummaryDto>.Failed("No valid questions found in the CSV.");
@@ -70,9 +77,12 @@ namespace Selfaware.Features.Quizzes
                 QuizId = quizId,
                 Text = q.Text,
                 Order = index + 1,
-                QuestionType = "SingleChoice",
-                OptionsJson = JsonSerializer.Serialize(q.Options),
-                CorrectAnswerIndex = q.CorrectAnswerIndex
+                Type = Enums.QuestionType.SingleChoice,
+                Options = q.Options.Select((option, index) =>
+                {
+                  Text = option.Text,
+                  Score = option.Score
+                }).ToList()
             }).ToList();
 
             var quiz = new Quiz
@@ -93,58 +103,77 @@ namespace Selfaware.Features.Quizzes
             await _context.SaveChangesAsync();
 
             var data = new QuizSummaryDto
-            {
-                Id = quiz.Id,
-                Title = quiz.Title,
-                Description = quiz.Description,
-                Slug = quiz.Slug,
-                QuestionCount = quiz.QuestionCount,
-                QuizType = quiz.QuizType
-            };
+            (
+                Id : quiz.Id,
+                Title : quiz.Title,
+                Description: quiz.Description,
+                Slug: quiz.Slug,
+                QuestionCount: quiz.QuestionCount,
+                QuizType: quiz.QuizType
+            );
 
             return ServiceResult<QuizSummaryDto>.Ok(data, "Quiz created succesfuly");
-        }
-        public async Task<ServiceResult<GetMyQuizzesDto>> GetMyQuizzesAsync(string userId)
+        }*/
+
+
+        public async Task<ServiceResult<GetQuizzesDto>> GetMyQuizzesAsync(string userId)
         {
-            var quizzes = await _context.Quizzes
+            var quizzes = await _context.Quizzes.AsNoTracking()
            .Where(q => q.CreatedById == userId)
             .Select(q => new QuizSummaryDto
-            {
-                Id = q.Id,
-                Title = q.Title,
-                Slug = q.Slug,
-                Description = q.Description,
-                QuestionCount = q.QuestionCount,
-                QuizType = q.QuizType
-            }).ToListAsync();
+            (
+                Id: q.Id,
+                QuestionCount: q.QuestionCount,
+                Title: q.Title,
+                Slug: q.Slug,
+                Description: q.Description,
+                QuizType: q.QuizType
+            )).ToListAsync();
 
-            var quizzesResult = new GetMyQuizzesDto
-            {
-                Quizzes = quizzes,
-                TotalCount = quizzes.Count
-            };
+            var quizzesResult = new GetQuizzesDto
+            (
+                Quizzes : quizzes,
+                TotalCount : quizzes.Count
+            );
 
-            return ServiceResult<GetMyQuizzesDto>.Ok(quizzesResult, "Quizzes success");
+            return ServiceResult<GetQuizzesDto>.Ok(quizzesResult, "Quizzes success");
         }
-        public async Task<ServiceResult<QuizDetailsDto?>> GetSingleQuizAsync(Guid quizId, string userId)
+        public async Task<ServiceResult<QuizDetailsDto>> GetSingleQuizAsync(Guid quizId, string userId)
         {
-            var quiz = await _context.Quizzes.Include(q => q.Questions).Where(q => q.Id == quizId && q.CreatedById == userId).Select(q => new QuizDetailsDto
-            {
-                Id = q.Id,
-                Title = q.Title,
-                Description = q.Description,
-                TimeLimit = q.TimeLimit,
-                Questions = q.Questions.Select(question => new QuestionDto
-                {
-                    Id = question.Id,
-                    Text = question.Text,
-                    QuestionType = question.QuestionType,
-                    OptionsJson = question.OptionsJson
-                }).ToList()
-            })
-        .FirstOrDefaultAsync();
+            
+            var quizEntity = await _context.Quizzes
+                .AsNoTracking()
+                .Include(q => q.Questions)
+                    .ThenInclude(question => question.Options)
+                .FirstOrDefaultAsync(q => q.Id == quizId && q.CreatedById == userId);
 
-            return ServiceResult<QuizDetailsDto>.Ok(quiz, "Quiz fetched succesfully");
+          
+            if (quizEntity == null) 
+            {
+                
+                return ServiceResult<QuizDetailsDto>.Failed("Quiz not found");
+            }
+
+           
+            var quizDto = new QuizDetailsDto(
+                Id: quizEntity.Id,
+                TimeLimit: quizEntity.TimeLimit,
+                QuizStatus:quizEntity.QuizStatus,
+                Title: quizEntity.Title,
+                Description: quizEntity.Description,
+
+                Questions: quizEntity.Questions.Select(question => new QuestionDto(
+                    Id: question.Id,
+                    Text: question.Text,
+                    Type: question.Type,
+                    Options: question.Options.Select(option => new OptionDto(
+                        Text: option.Text,
+                        Score: option.Score
+                    )).ToList()
+                )).ToList()
+            );
+
+            return ServiceResult<QuizDetailsDto>.Ok(quizDto, "Quiz fetched succesfully");
 
         }
     }

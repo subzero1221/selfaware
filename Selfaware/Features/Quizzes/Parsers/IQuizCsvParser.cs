@@ -1,6 +1,6 @@
 ﻿using Selfaware.Features.Quizzes.DTOs;
 
-namespace Selfaware.Features.Quizzes
+namespace Selfaware.Features.Quizzes.Parsers
 {
     public interface IQuizCsvParser
     {

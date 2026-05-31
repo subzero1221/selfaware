@@ -13,6 +13,9 @@ using Selfaware.Infrastructure.Messaging;
 using System.Security.Claims;
 using System.Text;
 using Selfaware.Features.User;
+using Selfaware.Features.Quizzes.Parsers;
+using Selfaware.Shared.AI;
+using Selfaware.Shared.DocumentExtraction;
 
 
 namespace Selfaware.Extensions
@@ -101,9 +104,11 @@ namespace Selfaware.Extensions
                           .AllowCredentials();                 
                 });
             });
-
+            //configs
             services.Configure<EmailSettings>(config.GetSection("EmailSettings"));
+            services.Configure<AiSettings>(config.GetSection("GeminiSettings"));
 
+            //server helper tools
             services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblyContaining<CreateQuizDtoValidator>();
             services.AddFluentValidationAutoValidation(config =>
@@ -116,10 +121,14 @@ namespace Selfaware.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IQuizService, QuizService>();
+            services.AddScoped<IQuizGeneratorService, QuizGeneratorService>();
             services.AddScoped<IUserService, UserService>();
 
             //Internal toolebi gaakete saqme da daibride
             services.AddTransient<IQuizCsvParser, QuizCsvParser>();
+            services.AddTransient<ITextExtractor, PdfExtractor>();
+            services.AddTransient<ITextExtractor, DocExtractor>();
+            services.AddTransient<IAIClient, GeminiClient>();
 
             return services;
         }

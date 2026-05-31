@@ -1,19 +1,13 @@
-﻿
+﻿using Selfaware.Features.Quizzes.Enums;
 
 namespace Selfaware.Features.Quizzes.DTOs
 {
-    public class CreateQuizDto
-    {
-      
-        public string Title { get; set; } = string.Empty;
-     
-        public string Description { get; set; } = string.Empty;
 
-        public List<CreateQuestionDto> Questions { get; set; } = new();
+    public record CreateQuizDto(string Title, string Description, List<CreateQuestionDto> Questions, int TimeLimitInMinutes, int QuestionCount); 
+    public record CreateQuestionDto(string Text, List<OptionDto> Options, int Order, QuestionType QuestionType);
+    public record BulkQuizUpload(int TimeLimitInMinutes, IFormFile File, string? Title = null, string? Description = null);
 
-        public int TimeLimitInMinutes { get; set; }
-
-        public int QuestionsCount { get; set; }
-    }
+    public record ExtractQuizRequestDto(IFormFile File);
+    
 }
 

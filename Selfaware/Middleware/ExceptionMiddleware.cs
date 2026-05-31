@@ -19,6 +19,10 @@ namespace Selfaware.Middleware
             {
                 await _next(context);
             }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
             catch (Exception ex)
             {
                 context.Response.ContentType = "application/json";
@@ -48,6 +52,7 @@ namespace Selfaware.Middleware
                         statusCode = HttpStatusCode.GatewayTimeout;
                         displayMessage = "The operation timed out.";
                         break;
+                    
                 }
 
                 context.Response.StatusCode = (int)statusCode;

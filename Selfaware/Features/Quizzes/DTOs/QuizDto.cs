@@ -1,12 +1,12 @@
-﻿namespace Selfaware.Features.Quizzes.DTOs
-{
-    public class QuizDto
-    {
-        public Guid Id { get; set; }
-        public string Title { get; set; } = string.Empty;
+﻿
+using Selfaware.Features.Quizzes.Enums;
 
-        public string Description { get; set; }
-        public int QuestionCount { get; set; }
-        public int TimeLimitInMinutes { get; set; }
-    }
+namespace Selfaware.Features.Quizzes.DTOs
+{
+ 
+    public record QuizDto(Guid QuizId, string Description, int QuestionCount, int TimeLimitInMinutes, string? Title = null);
+    public record AiQuizResponseDto(List<AiQuestionDto> Questions);
+    public record AiQuestionDto(List<AiOptionDto> Options, string? Text = null);
+    public record AiOptionDto(int Score, string? Text = null);
+
 }

@@ -1,4 +1,5 @@
-﻿using Selfaware.Features.User.Entities;
+﻿using Selfaware.Features.Quizzes.Enums;
+using Selfaware.Features.User.Entities;
 
 namespace Selfaware.Features.Quizzes.Entities
 {
@@ -11,6 +12,8 @@ namespace Selfaware.Features.Quizzes.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public int QuestionCount { get; set; }
         public TimeSpan TimeLimit { get; set; }
+
+        public QuizStatus QuizStatus { get; set; }
 
     
         public string QuizType { get; set; } = "Knowledge";
