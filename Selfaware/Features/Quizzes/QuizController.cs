@@ -31,6 +31,27 @@ namespace Selfaware.Features.Quizzes
             return Ok(CustomResponse<QuizDto>.SuccessResponse( result.Data, result.Message ));
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id:guid}")]
+        public async Task<ActionResult> PutQuiz([FromRoute] Guid id, [FromBody] PutQuizDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(CustomResponse<Guid>.ErrorResponse("Your have no permission for this action"));
+
+            if (id != dto.Id)
+            {
+                return BadRequest(CustomResponse<Guid>.ErrorResponse("Mismatched Quiz ID"));
+            }
+
+            var result = await _quizService.PutQuizAsync(dto, id, userId);
+            if (!result.Success)
+            {
+                return BadRequest(CustomResponse<Guid>.ErrorResponse(result.Message));
+            }
+
+            return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
+        }
+
         /*[Authorize(Roles = "Admin")]
         [HttpPost("bulk-create")]
         public async Task<ActionResult> bulkQuizUpload([FromForm] BulkQuizUpload dto)
@@ -66,20 +87,25 @@ namespace Selfaware.Features.Quizzes
         [HttpPost("ai-generate")]
         public async Task<ActionResult> ExtractExistingQuiz([FromForm] ExtractQuizRequestDto dto, CancellationToken cancellationToken)
         {
-           
-            var result = await _quizGeneratorService.ExtractExistingQuizAsync(dto, cancellationToken);
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("You must be logged in to generate a quiz.");
+            }
+            var result = await _quizGeneratorService.ExtractExistingQuizAsync(dto, userId, cancellationToken);
 
             if (!result.Success)
             {
-                BadRequest(CustomResponse<QuizDetailsDto>.ErrorResponse(result.Message));
+                return BadRequest(CustomResponse<Guid>.ErrorResponse(result.Message));
             }
 
-            return Ok(CustomResponse<QuizDetailsDto>.SuccessResponse(result.Data, "Quiz generated Succesfully"));
+            return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, "Quiz generated Succesfully"));
         }
 
         [Authorize(Roles ="Admin")]
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult> GetMyQuizzesAsync([FromRoute] Guid id)
+        public async Task<ActionResult> GetMyQuizAsync([FromRoute] Guid id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Unauthorized();

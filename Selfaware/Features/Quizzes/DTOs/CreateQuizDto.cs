@@ -5,9 +5,13 @@ namespace Selfaware.Features.Quizzes.DTOs
 
     public record CreateQuizDto(string Title, string Description, List<CreateQuestionDto> Questions, int TimeLimitInMinutes, int QuestionCount); 
     public record CreateQuestionDto(string Text, List<OptionDto> Options, int Order, QuestionType QuestionType);
-    public record BulkQuizUpload(int TimeLimitInMinutes, IFormFile File, string? Title = null, string? Description = null);
 
-    public record ExtractQuizRequestDto(IFormFile File);
+    public record PutQuizDto(Guid Id, string Title, string Description, string Slug, int TimeLimit, int QuestionCount, QuizStatus QuizStatus, string QuizType, List<QuestionDto> Questions);
+    public record BulkQuizUpload(int TimeLimitInMinutes, IFormFile File, string? Title = null, string? Description = null);
+    public class ExtractQuizRequestDto
+    {
+        public IFormFile? File { get; set; }
+    };
     
 }
 

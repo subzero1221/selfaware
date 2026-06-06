@@ -21,27 +21,32 @@ namespace Selfaware.Infrastructure.Data
                 .Property(b => b.RawAnswersJson)
                 .HasColumnType("jsonb");
         }
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
-         
             var entries = ChangeTracker
                 .Entries()
                 .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
 
             foreach (var entityEntry in entries)
             {
-       
-                if (entityEntry.Entity is ApplicationUser user)
-                {
-                    if (entityEntry.State == EntityState.Added)
-                    {
-                        user.CreatedAt = DateTime.UtcNow;
-                    }
+                var entityType = entityEntry.Entity.GetType();
 
-                    user.UpdatedAt = DateTime.UtcNow;
+            
+                var createdAtProp = entityType.GetProperty("CreatedAt");
+                if (createdAtProp != null && entityEntry.State == EntityState.Added)
+                {
+                    createdAtProp.SetValue(entityEntry.Entity, DateTime.UtcNow);
+                }
+
+             
+                var updatedAtProp = entityType.GetProperty("UpdatedAt");
+                if (updatedAtProp != null)
+                {
+                    updatedAtProp.SetValue(entityEntry.Entity, DateTime.UtcNow);
                 }
             }
-            return base.SaveChangesAsync(cancellationToken);
+
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
     }
 }

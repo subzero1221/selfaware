@@ -25,14 +25,14 @@ namespace Selfaware.Features.Quizzes
             _context = context;
         }
 
-        public async Task<ServiceResult<QuizDetailsDto>> ExtractExistingQuizAsync(ExtractQuizRequestDto dto, CancellationToken cancellationToken)
+        public async Task<ServiceResult<Guid>> ExtractExistingQuizAsync(ExtractQuizRequestDto dto, string currentUserId, CancellationToken cancellationToken)
         {
             using var stream = dto.File.OpenReadStream();
             stream.Position = 0;
             string fileName = dto.File.FileName;
             string systemPrompt = QuizPrompts.GenerateNewQuizFromText;
 
-            if (stream == null) return ServiceResult<QuizDetailsDto>.Failed("No file provided.");
+            if (stream == null) return ServiceResult<Guid>.Failed("No file provided.");
 
             string extension = Path.GetExtension(fileName).ToLower();
             byte[] buffer = new byte[4];
@@ -47,7 +47,7 @@ namespace Selfaware.Features.Quizzes
             };
 
             if (extractor == null)
-                return ServiceResult<QuizDetailsDto>.Failed("Invalid file format.");
+                return ServiceResult<Guid>.Failed("Invalid file format.");
 
             string rawText = extractor.ExtractText(stream);
 
@@ -55,8 +55,8 @@ namespace Selfaware.Features.Quizzes
 
             if (!aiResponse.Success || aiResponse.Data == null)
             {
-                return ServiceResult<QuizDetailsDto>.Failed(aiResponse.Message);
-            }
+                return ServiceResult<Guid>.Failed(aiResponse.Message);
+            } 
 
             var questions = aiResponse.Data;
 
@@ -65,7 +65,8 @@ namespace Selfaware.Features.Quizzes
                 Id = Guid.NewGuid(),
                 Title = "",
                 Description = "",
-                Slug = "",
+                CreatedById = currentUserId,
+                Slug = $"draft-{Guid.NewGuid()}",
                 QuizStatus = 0,
                 TimeLimit = TimeSpan.FromMinutes(30),
                 Questions = questions.Questions.Select((q, index) => new Question
@@ -73,6 +74,7 @@ namespace Selfaware.Features.Quizzes
                     Id = Guid.NewGuid(),
                     Text = q.Text,
                     Order = index + 1,
+                    Type = QuestionType.MultipleChoice,
 
                     Options = q.Options.Select(o => new Option
                     {
@@ -86,27 +88,10 @@ namespace Selfaware.Features.Quizzes
              _context.Quizzes.Add(generatedQuiz);
             await _context.SaveChangesAsync(cancellationToken);
 
-            var draftQuiz = new QuizDetailsDto
-                (
-                Id: generatedQuiz.Id,
-                Title: generatedQuiz.Title,
-                Description: generatedQuiz.Description,
-                TimeLimit: generatedQuiz.TimeLimit,
-                QuizStatus:generatedQuiz.QuizStatus,
-                Slug: generatedQuiz.Slug,
-                Questions: generatedQuiz.Questions.Select(question => new QuestionDto(
-                     Id: question.Id,
-                    Text: question.Text,
-                    Type: question.Type,
-                    Options: question.Options.Select(option => new OptionDto(
-                        Text: option.Text,
-                        Score: option.Score
-                    )).ToList()
-                )).ToList()
-                );
+            var draftQuizId = generatedQuiz.Id;
                 
 
-            return ServiceResult<QuizDetailsDto>.Ok(draftQuiz, aiResponse.Message);
+            return ServiceResult<Guid>.Ok(draftQuizId, aiResponse.Message);
         }
 
     }

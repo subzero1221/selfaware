@@ -27,6 +27,7 @@ namespace Selfaware.Features.Quizzes.DTOs
         public record QuizSummaryDto(
             Guid Id,
             int QuestionCount,
+            QuizStatus QuizStatus,
             string? Title = null,
             string? Slug = null,
             string? Description = null,

@@ -6,6 +6,7 @@ namespace Selfaware.Features.Quizzes
 {
     public interface IQuizGeneratorService
     {
-        Task<ServiceResult<QuizDetailsDto>> ExtractExistingQuizAsync(ExtractQuizRequestDto dto, CancellationToken cancellationToken);
+        Task<ServiceResult<Guid>> ExtractExistingQuizAsync(ExtractQuizRequestDto dto, string currentUserId, CancellationToken cancellationToken);
+        
     }
 }

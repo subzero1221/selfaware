@@ -106,10 +106,11 @@ namespace Selfaware.Extensions
             });
             //configs
             services.Configure<EmailSettings>(config.GetSection("EmailSettings"));
-            services.Configure<AiSettings>(config.GetSection("GeminiSettings"));
+            services.Configure<GeminiSettings>(config.GetSection("GeminiSettings"));
+            services.Configure<GPTSettings>(config.GetSection("GPTSettings"));
 
             //server helper tools
-            services.AddFluentValidationAutoValidation();
+         
             services.AddValidatorsFromAssemblyContaining<CreateQuizDtoValidator>();
             services.AddFluentValidationAutoValidation(config =>
             {
@@ -128,8 +129,8 @@ namespace Selfaware.Extensions
             services.AddTransient<IQuizCsvParser, QuizCsvParser>();
             services.AddTransient<ITextExtractor, PdfExtractor>();
             services.AddTransient<ITextExtractor, DocExtractor>();
-            services.AddTransient<IAIClient, GeminiClient>();
-
+            //services.AddTransient<IAIClient, GeminiClient>();
+            services.AddTransient<IAIClient, GPTClient>();
             return services;
         }
         public static IMvcBuilder ConfigureCustomValidation(this IMvcBuilder mvcBuilder)

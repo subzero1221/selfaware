@@ -38,7 +38,7 @@ namespace Selfaware.Middleware
                     case InvalidOperationException:
                     case FormatException: 
                         statusCode = HttpStatusCode.BadRequest;
-                        displayMessage = "Invalid request data.";
+                        displayMessage = $"Invalid request data. Details: {ex.Message}";
                         break;
                     case UnauthorizedAccessException:
                         statusCode = HttpStatusCode.Unauthorized;
