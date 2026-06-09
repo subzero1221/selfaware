@@ -8,7 +8,9 @@ using Selfaware.Infrastructure.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging()
+           .LogTo(Console.WriteLine, LogLevel.Information));
+          
 
 
 builder.Services.AddIdentityAndAuth(builder.Configuration);

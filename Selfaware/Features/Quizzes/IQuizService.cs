@@ -12,5 +12,7 @@ namespace Selfaware.Features.Quizzes
 
         Task<ServiceResult<Guid>> PutQuizAsync(PutQuizDto dto,Guid quizId, string userId);
         Task<ServiceResult<QuizDetailsDto>> GetSingleQuizAsync(Guid quizId, string userId);
+
+        Task<ServiceResult<Guid>> DeleteQuizAsync(Guid quizId, string userId);
     }
 }

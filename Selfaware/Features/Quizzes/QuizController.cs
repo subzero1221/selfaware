@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Google.GenAI.Types;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Quizzes.DTOs.Selfaware.Features.Quizzes.DTOs;
@@ -120,6 +121,22 @@ namespace Selfaware.Features.Quizzes
             }
 
             return Ok(CustomResponse<QuizDetailsDto>.SuccessResponse(result.Data, result.Message));
+        }
+
+        [Authorize(Roles ="Admin")]
+        [HttpDelete("{id:guid}")]
+        public async Task<ActionResult> DeleteQuiz([FromRoute] Guid id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _quizService.DeleteQuizAsync(id, userId);
+            if (result == null)
+            {
+                return NotFound(CustomResponse<string>.ErrorResponse("Quiz not found."));
+            }
+
+            return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
         }
     } 
     }
