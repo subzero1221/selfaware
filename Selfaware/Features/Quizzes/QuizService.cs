@@ -67,7 +67,7 @@ namespace Selfaware.Features.Quizzes
 
         public async Task<ServiceResult<Guid>> PutQuizAsync(PutQuizDto dto, Guid quizId, string userId)
         {
-            var existingQuiz = await _context.Quizzes.include(q=>q.Questions)
+            var existingQuiz = await _context.Quizzes.Include(q=>q.Questions)
             .FirstOrDefaultAsync(q => q.Id == quizId && q.CreatedById == userId);
 
             if (existingQuiz == null)
@@ -83,9 +83,9 @@ namespace Selfaware.Features.Quizzes
             existingQuiz.QuizStatus = dto.QuizStatus;
             existingQuiz.QuestionCount = dto.QuestionCount;
 
-            _context.Quizzes.Update(existingQuiz);
+            _context.Questions.RemoveRange(existingQuiz.Questions);
+
             
-            await _context.Questions.Where(q => q.QuizId == quizId).ExecuteDeleteAsync();
 
             var newQuestions = dto.Questions.Select((qDto, Index) => new Question
             {
