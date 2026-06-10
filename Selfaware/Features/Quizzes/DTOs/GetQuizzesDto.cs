@@ -15,7 +15,7 @@ namespace Selfaware.Features.Quizzes.DTOs
        
         public record QuizDetailsDto(
             Guid Id,
-            TimeSpan TimeLimit,
+            int TimeLimit,
             QuizStatus QuizStatus,
             string? Title = null,
             string? Description = null,

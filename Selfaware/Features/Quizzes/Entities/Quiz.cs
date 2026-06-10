@@ -11,7 +11,7 @@ namespace Selfaware.Features.Quizzes.Entities
         public string Slug { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public int QuestionCount { get; set; }
-        public TimeSpan TimeLimit { get; set; }
+        public int TimeLimit { get; set; }
 
         public QuizStatus QuizStatus { get; set; }
 

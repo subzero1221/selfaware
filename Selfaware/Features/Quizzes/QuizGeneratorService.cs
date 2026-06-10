@@ -68,7 +68,7 @@ namespace Selfaware.Features.Quizzes
                 CreatedById = currentUserId,
                 Slug = $"draft-{Guid.NewGuid()}",
                 QuizStatus = 0,
-                TimeLimit = TimeSpan.FromMinutes(30),
+                TimeLimit = 30,
                 Questions = questions.Questions.Select((q, index) => new Question
                 {
                     Id = Guid.NewGuid(),

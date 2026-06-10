@@ -14,12 +14,14 @@ namespace Selfaware.Features.Quizzes
     {
         private readonly IQuizService _quizService;
         private readonly IQuizGeneratorService _quizGeneratorService;
+        private readonly IQuizEditorService _quizEditorService;
         
 
-        public QuizController(IQuizService quizService, IQuizGeneratorService quizGeneratorService)
+        public QuizController(IQuizService quizService, IQuizGeneratorService quizGeneratorService, IQuizEditorService quizEditorService)
         {
             _quizService = quizService;
             _quizGeneratorService = quizGeneratorService;
+            _quizEditorService = quizEditorService;
         }
 
         [Authorize(Roles = "Admin")]
@@ -137,6 +139,29 @@ namespace Selfaware.Features.Quizzes
             }
 
             return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
+        }
+
+        ///////
+        /////////////
+        //Edit Controllers
+        /////////////
+        ///////
+
+        [Authorize(Roles ="Admin")]
+        [HttpPatch("{id:guid}/settings")]
+        public async Task<ActionResult> EditQuizSettings([FromRoute] Guid id, [FromBody] EditQuizSettingsDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _quizEditorService.EditSettingsAsync(id, userId, dto);
+            if (result == null)
+            {
+                return NotFound(CustomResponse<string>.ErrorResponse("Quiz not found."));
+            }
+
+            return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
+
         }
     } 
     }

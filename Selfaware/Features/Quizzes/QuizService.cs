@@ -2,11 +2,10 @@
 using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Quizzes.DTOs.Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Quizzes.Entities;
-using Selfaware.Features.Quizzes.Enums;
 using Selfaware.Features.Quizzes.Parsers;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Models;
-using System.Xml;
+
 
 
 namespace Selfaware.Features.Quizzes
@@ -36,7 +35,7 @@ namespace Selfaware.Features.Quizzes
                 Title = dto.Title,
                 Description = dto.Description,
                 QuestionCount = dto.Questions.Count,
-                TimeLimit = TimeSpan.FromMinutes(dto.TimeLimitInMinutes),
+                TimeLimit = dto.TimeLimitInMinutes,
                 Questions = dto.Questions.Select((question, index) => new Question
                 {
                     Id = Guid.NewGuid(),
@@ -79,7 +78,7 @@ namespace Selfaware.Features.Quizzes
             existingQuiz.Title = dto.Title;
             existingQuiz.Description = dto.Description;
             existingQuiz.Slug = dto.Slug;
-            existingQuiz.TimeLimit = TimeSpan.FromMinutes(dto.TimeLimit);
+            existingQuiz.TimeLimit = dto.TimeLimit;
             existingQuiz.QuizStatus = dto.QuizStatus;
             existingQuiz.QuestionCount = dto.QuestionCount;
 

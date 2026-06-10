@@ -122,6 +122,7 @@ namespace Selfaware.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IQuizService, QuizService>();
+            services.AddScoped<IQuizEditorService, QuizEditorService>();
             services.AddScoped<IQuizGeneratorService, QuizGeneratorService>();
             services.AddScoped<IUserService, UserService>();
 
