@@ -163,6 +163,23 @@ namespace Selfaware.Features.Quizzes
             return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
 
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id:guid}/questions/{questionId:guid}")]
+        public async Task<ActionResult> EditQuizQuestions([FromRoute] Guid id, Guid questionId, [FromBody] EditQuestionDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _quizEditorService.EditQuestionAsync(id, questionId, userId, dto);
+            if (result == null)
+            {
+                return NotFound(CustomResponse<string>.ErrorResponse("Question not found."));
+            }
+
+            return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
+
+        }
     } 
     }
 

@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Selfaware.Features.Quizzes.DTOs;
+using Selfaware.Features.Quizzes.Entities;
+using Selfaware.Features.Quizzes.Enums;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Models;
-using Selfaware.Features.Quizzes.Enums;
 
 
 namespace Selfaware.Features.Quizzes
@@ -19,7 +20,7 @@ namespace Selfaware.Features.Quizzes
         public async Task<ServiceResult<Guid>> EditSettingsAsync(Guid quizId, string userId, EditQuizSettingsDto dto)
         {
             var quiz = await _context.Quizzes.Where(quiz => quiz.Id == quizId && quiz.CreatedById == userId).FirstOrDefaultAsync();
-            if(quiz == null)
+            if (quiz == null)
             {
                 return ServiceResult<Guid>.Failed("Quiz not found or access denied");
             }
@@ -52,6 +53,36 @@ namespace Selfaware.Features.Quizzes
             await _context.SaveChangesAsync();
 
             return ServiceResult<Guid>.Ok(quizId, "Quiz settings edit success");
+
+        }
+
+        public async Task<ServiceResult<Guid>> EditQuestionAsync(Guid quizId, Guid questionId, string userId, EditQuestionDto dto)
+        {
+            var question = await _context.Questions
+                .Include(q => q.Options)
+       .FirstOrDefaultAsync(q => q.QuizId == quizId
+                           && q.Id == questionId
+                           && q.Quiz.CreatedById == userId);
+            if (question == null)
+            {
+                return ServiceResult<Guid>.Failed("Question not found or access denied");
+            }
+
+            question.Text = dto.Text;
+            foreach (var dtoOpt in dto.Options)
+            {
+                var existingOpt = question.Options.FirstOrDefault(o => o.Id == dtoOpt.Id);
+
+                if (existingOpt != null)
+                {
+                    existingOpt.Text = dtoOpt.Text;
+                    existingOpt.Score = dtoOpt.Score;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return ServiceResult<Guid>.Ok(questionId, "Question update success");
 
         }
 

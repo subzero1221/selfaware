@@ -6,5 +6,5 @@ namespace Selfaware.Features.Quizzes.DTOs
     
     public record ParsedQuestionDto(string Text, List<OptionDto> Options);
 
-    public record OptionDto(string Text, int Score);
+    public record OptionDto(Guid Id, string Text, int Score);
 }

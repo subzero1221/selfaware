@@ -217,6 +217,7 @@ namespace Selfaware.Features.Quizzes
                     Type: question.Type,
                     Order: question.Order,
                     Options: question.Options.Select(option => new OptionDto(
+                        Id: option.Id,
                         Text: option.Text,
                         Score: option.Score
                     )).ToList()
