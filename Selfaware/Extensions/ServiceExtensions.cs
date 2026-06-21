@@ -16,6 +16,8 @@ using Selfaware.Features.User;
 using Selfaware.Features.Quizzes.Parsers;
 using Selfaware.Shared.AI;
 using Selfaware.Shared.DocumentExtraction;
+using StackExchange.Redis;
+using Selfaware.Features.Game.Lobby;
 
 
 namespace Selfaware.Extensions
@@ -125,6 +127,7 @@ namespace Selfaware.Extensions
             services.AddScoped<IQuizEditorService, QuizEditorService>();
             services.AddScoped<IQuizGeneratorService, QuizGeneratorService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ILobbyService, LobbyService>();
 
             //Internal toolebi gaakete saqme da daibride
             services.AddTransient<IQuizCsvParser, QuizCsvParser>();
@@ -132,6 +135,12 @@ namespace Selfaware.Extensions
             services.AddTransient<ITextExtractor, DocExtractor>();
             //services.AddTransient<IAIClient, GeminiClient>();
             services.AddTransient<IAIClient, GPTClient>();
+
+
+
+            //Lifecycles
+            services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect("127.0.0.1:6379"));
+
             return services;
         }
         public static IMvcBuilder ConfigureCustomValidation(this IMvcBuilder mvcBuilder)

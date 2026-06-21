@@ -180,6 +180,24 @@ namespace Selfaware.Features.Quizzes
             return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
 
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id:guid}/questions/{questionId:guid}")]
+        public async Task<ActionResult> DeleteQuizQuestion([FromRoute] Guid id, Guid questionId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _quizEditorService.DeleteQuestionAsync(id, questionId, userId);
+            if (result == null)
+            {
+                return NotFound(CustomResponse<string>.ErrorResponse("Question not found."));
+            }
+
+            return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
+
+        }
+
     } 
     }
 

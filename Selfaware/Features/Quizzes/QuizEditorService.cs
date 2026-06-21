@@ -86,5 +86,23 @@ namespace Selfaware.Features.Quizzes
 
         }
 
+        public async Task<ServiceResult<Guid>> DeleteQuestionAsync(Guid quizId, Guid questionId, string userId)
+        {
+            var deletedCount = await _context.Questions
+     .Where(question =>
+         question.Id == questionId &&
+         question.QuizId == quizId &&
+         question.Quiz.CreatedById == userId)
+     .ExecuteDeleteAsync();
+        
+         if(deletedCount == 0)
+            {
+                return ServiceResult<Guid>.Failed("Question not found or access denied");
+            }
+
+            return ServiceResult<Guid>.Ok(questionId, "Question delete success");
+        }
+
+
     }
 }

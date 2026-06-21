@@ -9,5 +9,7 @@ namespace Selfaware.Features.Quizzes
         Task<ServiceResult<Guid>> EditSettingsAsync(Guid quizId, string userId, EditQuizSettingsDto dto);
         Task<ServiceResult<Guid>> EditQuestionAsync(Guid quizId, Guid questionId, string userId, EditQuestionDto dto);
 
+        Task<ServiceResult<Guid>> DeleteQuestionAsync(Guid quizId, Guid questionId, string userId);
+
     }
 }
