@@ -1,4 +1,4 @@
-﻿using Selfaware.Features.Quizzes.Entities;
+﻿
 
 namespace Selfaware.Features.Game.Lobby.Entities
 {

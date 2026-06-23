@@ -138,6 +138,8 @@ namespace Selfaware.Features.Game.Lobby
             string playerId = dto.Id;
 
             var playersKey = $"lobby:{joinCode}:players";
+            Console.WriteLine(playersKey);
+            Console.WriteLine(playerId);
 
             await _redis.HashDeleteAsync(playersKey, playerId.ToString());
 
@@ -202,12 +204,7 @@ namespace Selfaware.Features.Game.Lobby
         {
             string joinCodeStr = $"lobby:{joinCode}";
             string checkPlayer = $"{joinCodeStr}:{playerId}";
-            bool existsAsync = await _redis.KeyExistsAsync(checkPlayer);
-
-            if (!existsAsync)
-            {
-                return ServiceResult<GetLobbyForPlayerDto>.Failed("lobby not found");
-            }
+          
 
             var lobbyTask = _redis.HashGetAllAsync(joinCodeStr);
             var playersTask = _redis.HashGetAllAsync($"{joinCodeStr}:players");
@@ -219,7 +216,13 @@ namespace Selfaware.Features.Game.Lobby
             var hashEntries = lobbyTask.Result;
             var playerEntries = playersTask.Result;
 
-            
+            bool isPlayerInLobby = playerEntries.Any(entry => entry.Name.ToString() == playerId.ToString());
+
+            if (!isPlayerInLobby)
+            {
+                return ServiceResult<GetLobbyForPlayerDto>.Failed("Lobby not found");
+            }
+        
 
             if (hashEntries.Length == 0)
             {
