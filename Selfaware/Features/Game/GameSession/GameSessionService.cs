@@ -73,6 +73,7 @@ namespace Selfaware.Features.Game.GameSession
                 await _redis.HashSetAsync(gamePlayersKey, player.PlayerId.ToString(), playerJson);
             }
 
+            return ServiceResult<string>.Ok("stfu");
         }
 
     }
