@@ -3,10 +3,9 @@
 
     public enum PlayerState
     {
-        Waiting = 0,
-        Answering = 1,
-        Answered = 2,
-        Disconnected = 3
+        Answering = 0,
+        Answered = 1,
+        Disconnected = 2
     }
 
     public class Player
@@ -18,6 +17,6 @@
         public int Score { get; set; }
         public int Streak { get; set; } = 0;
 
-        public string SignalRConnectionId { get; set; }
+        public string SignalRConnectionId { get; set; } = string.Empty;
     }
 }

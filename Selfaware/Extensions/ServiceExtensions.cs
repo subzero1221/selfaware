@@ -18,6 +18,7 @@ using Selfaware.Shared.AI;
 using Selfaware.Shared.DocumentExtraction;
 using StackExchange.Redis;
 using Selfaware.Features.Game.Lobby;
+using Selfaware.Features.Game.GameSession;
 
 
 namespace Selfaware.Extensions
@@ -106,6 +107,8 @@ namespace Selfaware.Extensions
                           .AllowCredentials();                 
                 });
             });
+
+            services.AddSignalR();
             //configs
             services.Configure<EmailSettings>(config.GetSection("EmailSettings"));
             services.Configure<GeminiSettings>(config.GetSection("GeminiSettings"));
@@ -128,6 +131,7 @@ namespace Selfaware.Extensions
             services.AddScoped<IQuizGeneratorService, QuizGeneratorService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ILobbyService, LobbyService>();
+            services.AddScoped<IGameSessionService, GameSessionService>();
 
             //Internal toolebi gaakete saqme da daibride
             services.AddTransient<IQuizCsvParser, QuizCsvParser>();

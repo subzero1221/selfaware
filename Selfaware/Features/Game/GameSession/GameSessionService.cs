@@ -2,10 +2,10 @@
 using Selfaware.Features.Game.GameSession.DTOs;
 using Selfaware.Features.Game.GameSession.Entities;
 using Selfaware.Features.Game.Lobby.DTOs;
-using Selfaware.Features.Game.Lobby.Entities;
 using Selfaware.Shared.Models;
 using StackExchange.Redis;
 using System.Text.Json;
+
 
 namespace Selfaware.Features.Game.GameSession
 {
@@ -16,6 +16,70 @@ namespace Selfaware.Features.Game.GameSession
         public GameSessionService(IConnectionMultiplexer redisMux)
         {
             _redis = redisMux.GetDatabase();
+        }
+
+        public async Task<ServiceResult<string>> PlayerIsReadyAsync(string playerId, string joinCode, string ConnectionId)
+        {
+
+            string playersKey = $"lobby:{joinCode}:players";
+
+       
+            string playerJson = await _redis.HashGetAsync(playersKey, playerId);
+
+            if (string.IsNullOrEmpty(playerJson))
+            {
+                return ServiceResult<string>.Failed("Player not found.");
+            }
+
+           
+            var player = JsonSerializer.Deserialize<GetLobbyPlayerDto>(playerJson);
+
+           
+            var updatedPlayer = player with { IsReady =true, SignalRConnectionId = ConnectionId };
+            
+
+           
+            string updatedJson = JsonSerializer.Serialize(updatedPlayer);
+
+           
+            await _redis.HashSetAsync(playersKey, playerId, updatedJson);
+
+          
+            return ServiceResult<string>.Ok(updatedPlayer.SignalRConnectionId, "Player is ready!");
+
+
+        }
+
+        public async Task<ServiceResult<string>> PlayerIsNotReadyAsync(string playerId, string joinCode, string ConnectionId)
+        {
+
+            string playersKey = $"lobby:{joinCode}:players";
+
+
+            string playerJson = await _redis.HashGetAsync(playersKey, playerId);
+
+            if (string.IsNullOrEmpty(playerJson))
+            {
+                return ServiceResult<string>.Failed("Player not found.");
+            }
+
+
+            var player = JsonSerializer.Deserialize<GetLobbyPlayerDto>(playerJson);
+
+
+            var updatedPlayer = player with { IsReady = false };
+          
+
+
+            string updatedJson = JsonSerializer.Serialize(updatedPlayer);
+
+
+            await _redis.HashSetAsync(playersKey, playerId, updatedJson);
+
+
+            return ServiceResult<string>.Ok(updatedPlayer.SignalRConnectionId, "Player is ready!");
+
+
         }
 
         public async Task<ServiceResult<string>> StartGameAsync(string joinCode, string hostId, Guid quizId, string connectionId)
@@ -63,7 +127,6 @@ namespace Selfaware.Features.Game.GameSession
                 Score: 0,
                 Streak: 0,
                 SignalRConnectionId: connectionId
-
                 )).ToList();
 
             await _redis.HashSetAsync(gameKey, gameData);

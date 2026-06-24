@@ -3,7 +3,7 @@ using Selfaware.Features.Game.Lobby.Entities;
 using Selfaware.Shared.Models;
 using StackExchange.Redis;
 using System.Text.Json;
-using System.Xml;
+
 
 
 namespace Selfaware.Features.Game.Lobby
@@ -28,7 +28,7 @@ namespace Selfaware.Features.Game.Lobby
             var lobbyTask = _redis.HashGetAllAsync(joinCodeStr);
             var playersTask = _redis.HashGetAllAsync($"{joinCodeStr}:players");
            
-            var currentDb = _redis.Database;
+            //var currentDb = _redis.Database;
           
 
             await Task.WhenAll(lobbyTask, playersTask);
@@ -138,8 +138,7 @@ namespace Selfaware.Features.Game.Lobby
             string playerId = dto.Id;
 
             var playersKey = $"lobby:{joinCode}:players";
-            Console.WriteLine(playersKey);
-            Console.WriteLine(playerId);
+           
 
             await _redis.HashDeleteAsync(playersKey, playerId.ToString());
 
@@ -182,6 +181,7 @@ namespace Selfaware.Features.Game.Lobby
             {
                 Id = playerId,
                 NickName = nickName,
+                IsReady = false,
                 JoinedAt = joinedAt.ToString("o")
             };
 
@@ -194,6 +194,8 @@ namespace Selfaware.Features.Game.Lobby
             var newPlayer = new GetLobbyPlayerDto(
                 Id: playerId,
                 NickName: nickName,
+                IsReady:false,
+                SignalRConnectionId:"",
                 JoinedAt: joinedAt
             );
 

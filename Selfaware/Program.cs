@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Selfaware.Middleware;
 using Selfaware.Extensions;
+using Selfaware.Features.Game.GameSession;
 using Selfaware.Infrastructure.Data;
+using Selfaware.Middleware;
 
 
 
@@ -19,11 +20,13 @@ builder.Services.AddControllers().ConfigureCustomValidation();
 
 var app = builder.Build();
 app.UseRouting();
+app.UseWebSockets();
 app.UseCors("FrontendPolicy");
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<GameSessionHub>("/game");
 
 app.Run();
