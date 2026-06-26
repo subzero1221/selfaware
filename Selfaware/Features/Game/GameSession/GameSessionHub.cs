@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Selfaware.Features.Game.GameSession.DTOs;
 using Selfaware.Features.Game.GameSession.Entities;
 
 namespace Selfaware.Features.Game.GameSession
@@ -58,6 +59,13 @@ namespace Selfaware.Features.Game.GameSession
             }
 
            await Clients.Group(joinCode).SendAsync("StartGame", result.Data);
+        }
+
+        public async Task SubmitAnswer(SubmitAnswerDto dto)
+        {
+            string connectionId = Context.ConnectionId;
+            var result = await _gameSessionService.SubmitAnswerAsync(dto);
+
         }
     }
 }

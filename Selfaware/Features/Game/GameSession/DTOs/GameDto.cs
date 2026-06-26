@@ -24,4 +24,19 @@ namespace Selfaware.Features.Game.GameSession.DTOs
         Guid Id,
         string Text
     );
+
+    public record GetGameDto(string joinCode, string playerId);
+
+    public record SubmitAnswerDto(
+    string JoinCode,
+    string PlayerId,
+    string QuestionId,
+    int OnSecond,
+    string OptionId
+);
+
+
+    //for game logic
+
+    public record correctQuestionDto(Guid QuestionId, Guid CorrectOptionId);
 }

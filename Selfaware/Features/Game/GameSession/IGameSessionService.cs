@@ -1,4 +1,6 @@
 ﻿using Selfaware.Features.Game.GameSession.DTOs;
+using Selfaware.Features.Game.GameSession.Entities;
+using Selfaware.Features.Quizzes.Entities;
 using Selfaware.Shared.Models;
 
 namespace Selfaware.Features.Game.GameSession
@@ -10,5 +12,10 @@ namespace Selfaware.Features.Game.GameSession
         public Task<ServiceResult<GameDto>> StartGameAsync(string joinCode, string hostId, Guid quizId, string connectionId);
 
         public Task<ServiceResult<string>> LeaveLobbyAsync(string playerId, string joinCode);
+
+        public Task<ServiceResult<GamePlayerDto>> SubmitAnswerAsync(SubmitAnswerDto dto);
+        //HttpReqs
+        public Task<ServiceResult<GameDto>> GetGameAsync(string joinCode, string playerId);
+
     }
 }
