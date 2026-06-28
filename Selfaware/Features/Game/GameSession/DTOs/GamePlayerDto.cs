@@ -2,10 +2,9 @@
 
 public enum PlayerState
 {
-    Waiting = 0,
-    Answering = 1,
-    Answered = 2,
-    Disconnected = 3
+    Answering = 0,
+    Answered = 1,
+    Disconnected = 2
 }
 
 namespace Selfaware.Features.Game.GameSession.DTOs

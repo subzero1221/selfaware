@@ -34,12 +34,14 @@ namespace Selfaware.Extensions
             var jwtSettings = config.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
-            services.AddAuthentication(options => {
+            services.AddAuthentication(options =>
+            {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(options => {
+            .AddJwtBearer(options =>
+            {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = false,
@@ -50,17 +52,17 @@ namespace Selfaware.Extensions
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     RoleClaimType = ClaimTypes.Role,
-                   
+
                 };
 
                 options.IncludeErrorDetails = true;
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
-                    {    
+                    {
                         if (context.Request.Cookies.TryGetValue("accessToken", out string token))
                         {
-                            context.Token = token; 
+                            context.Token = token;
                         }
                         return Task.CompletedTask;
                     },
@@ -93,7 +95,7 @@ namespace Selfaware.Extensions
             return services;
         }
 
-       public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
         {
 
 
@@ -101,21 +103,24 @@ namespace Selfaware.Extensions
             {
                 options.AddPolicy("FrontendPolicy", policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000") 
-                          .AllowAnyMethod()                    
-                          .AllowAnyHeader()                   
-                          .AllowCredentials();                 
+                    policy.WithOrigins("http://localhost:3000")
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
                 });
             });
 
-            services.AddSignalR();
+            services.AddSignalR(options =>
+            {
+                options.EnableDetailedErrors = true;
+            });
             //configs
             services.Configure<EmailSettings>(config.GetSection("EmailSettings"));
             services.Configure<GeminiSettings>(config.GetSection("GeminiSettings"));
             services.Configure<GPTSettings>(config.GetSection("GPTSettings"));
 
             //server helper tools
-         
+
             services.AddValidatorsFromAssemblyContaining<CreateQuizDtoValidator>();
             services.AddFluentValidationAutoValidation(config =>
             {

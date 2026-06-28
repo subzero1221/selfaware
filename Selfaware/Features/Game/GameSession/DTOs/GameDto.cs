@@ -4,13 +4,14 @@
 namespace Selfaware.Features.Game.GameSession.DTOs
 {
     public record GameDto(
-        Guid Id, 
-        Guid QuizId, 
-        ActiveQuestionDto CurrentQuestion, 
-        int CurrentQuestionIndex, 
-        ICollection<GamePlayerDto> Players, 
-        SessionState State, int TotalQuestions, 
-        int? TimeLimitSeconds
+        Guid Id,
+        Guid QuizId,
+        int CurrentQuestionIndex,
+        ICollection<GamePlayerDto> Players,
+        SessionState State,
+        ActiveQuestionDto? CurrentQuestion = null,
+        int? TotalQuestions = null,
+        int? TimeLimitSeconds = null
         );
 
 
@@ -36,7 +37,9 @@ namespace Selfaware.Features.Game.GameSession.DTOs
 );
 
 
-    //for game logic
 
+    //for game logic
+    public record LeaderBoardDto(IList<GamePlayerDto> Players);
+    public record NextQuestionDto(string JoinCode, int CurrentQuestionIndex);
     public record correctQuestionDto(Guid QuestionId, Guid CorrectOptionId);
 }

@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Selfaware.Features.Game.GameSession.DTOs;
-using Selfaware.Features.Game.GameSession.Entities;
+
 
 namespace Selfaware.Features.Game.GameSession
 {
-    public class GameSessionHub:Hub
+    public class GameSessionHub : Hub
     {
         private readonly IGameSessionService _gameSessionService;
         public GameSessionHub(IGameSessionService gameSessionService)
@@ -14,7 +14,7 @@ namespace Selfaware.Features.Game.GameSession
 
         public async Task JoinLobby(string joinCode)
         {
-      
+
             await Groups.AddToGroupAsync(Context.ConnectionId, joinCode);
 
         }
@@ -34,7 +34,7 @@ namespace Selfaware.Features.Game.GameSession
             string connectionId = Context.ConnectionId;
             await _gameSessionService.PlayerIsReadyAsync(playerId, joinCode, connectionId);
             await Groups.AddToGroupAsync(Context.ConnectionId, joinCode);
-       
+
             await Clients.Group(joinCode).SendAsync("PlayerIsReady", playerId);
         }
 
@@ -58,14 +58,48 @@ namespace Selfaware.Features.Game.GameSession
                 return;
             }
 
-           await Clients.Group(joinCode).SendAsync("StartGame", result.Data);
+            await Clients.Group(joinCode).SendAsync("StartGame", result.Data);
         }
 
         public async Task SubmitAnswer(SubmitAnswerDto dto)
         {
-            string connectionId = Context.ConnectionId;
+            
+            
             var result = await _gameSessionService.SubmitAnswerAsync(dto);
+            if (!result.Success)
+            {
+                await Clients.Caller.SendAsync("SubmitAnswerFail", result.Message);
+                return;
+            }
+
+            await Clients.Caller.SendAsync("SubmitAnswer", result.Data);
 
         }
+
+        public async Task ShowLeaderBoard(string joinCode, string playerId)
+        {
+            var result = await _gameSessionService.ShowLeaderBoardAsync(joinCode, playerId);
+            if (!result.Success)
+            {
+                await Clients.Group(joinCode).SendAsync("ShowLeaderBoardFail", result.Message);
+                return;
+            }
+
+            await Clients.Group(joinCode).SendAsync("ShowLeaderBoard", result.Data);
+        }
+
+        public async Task NextQuestion(string joinCode, string playerId)
+        {
+
+            var result = await _gameSessionService.NextQuestionAsync(joinCode, playerId);
+            if (!result.Success)
+            {
+                await Clients.Group(joinCode).SendAsync("NextQuestionFail", result.Message);
+            }
+
+            await Clients.Group(joinCode).SendAsync("NextQuestion", result.Data);
+
+        }
+
     }
 }
