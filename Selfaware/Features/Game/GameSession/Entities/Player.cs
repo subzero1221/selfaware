@@ -1,11 +1,10 @@
 ﻿namespace Selfaware.Features.Game.GameSession.Entities
 {
-
     public enum PlayerState
     {
         Answering = 0,
         Answered = 1,
-        Disconnected = 2
+        Disconnected = 2,
     }
 
     public class Player

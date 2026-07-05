@@ -2,7 +2,6 @@
 using Selfaware.Features.Game.GameSession.DTOs;
 using Selfaware.Shared.Models;
 
-
 namespace Selfaware.Features.Game.GameSession
 {
     [ApiController]
@@ -17,7 +16,10 @@ namespace Selfaware.Features.Game.GameSession
         }
 
         [HttpGet("{joinCode}/{playerId}")]
-        public async Task<ActionResult> GetGame([FromRoute] string joinCode, [FromRoute] string playerId)
+        public async Task<ActionResult> GetGame(
+            [FromRoute] string joinCode,
+            [FromRoute] string playerId
+        )
         {
             var result = await _gameSessionService.GetGameAsync(joinCode, playerId);
 

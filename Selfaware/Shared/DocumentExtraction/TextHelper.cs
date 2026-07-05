@@ -6,12 +6,14 @@
         {
             var chunks = new List<string>();
 
-            var paragraphs = input.Split(new[] { "\n\n", "\r\n\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var paragraphs = input.Split(
+                new[] { "\n\n", "\r\n\r\n" },
+                StringSplitOptions.RemoveEmptyEntries
+            );
             string currentChunk = "";
 
             foreach (var paragraph in paragraphs)
             {
-        
                 if (currentChunk.Length + paragraph.Length > maxChunkSize)
                 {
                     if (!string.IsNullOrWhiteSpace(currentChunk))
@@ -22,7 +24,6 @@
                 }
                 else
                 {
-     
                     currentChunk += (currentChunk.Length > 0 ? "\n\n" : "") + paragraph;
                 }
             }

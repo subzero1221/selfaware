@@ -8,31 +8,38 @@ using Selfaware.Shared.AI;
 using Selfaware.Shared.DocumentExtraction;
 using Selfaware.Shared.Models;
 
-
-
 namespace Selfaware.Features.Quizzes
 {
-    public class QuizGeneratorService:IQuizGeneratorService
+    public class QuizGeneratorService : IQuizGeneratorService
     {
         public readonly ITextExtractor _textExtractor;
         public readonly IAIClient _aiClient;
         public readonly AppDbContext _context;
 
-        public QuizGeneratorService(ITextExtractor textExtractor, IAIClient aiclient, AppDbContext context)
+        public QuizGeneratorService(
+            ITextExtractor textExtractor,
+            IAIClient aiclient,
+            AppDbContext context
+        )
         {
             _textExtractor = textExtractor;
             _aiClient = aiclient;
             _context = context;
         }
 
-        public async Task<ServiceResult<Guid>> ExtractExistingQuizAsync(ExtractQuizRequestDto dto, string currentUserId, CancellationToken cancellationToken)
+        public async Task<ServiceResult<Guid>> ExtractExistingQuizAsync(
+            ExtractQuizRequestDto dto,
+            string currentUserId,
+            CancellationToken cancellationToken
+        )
         {
             using var stream = dto.File.OpenReadStream();
             stream.Position = 0;
             string fileName = dto.File.FileName;
             string systemPrompt = QuizPrompts.GenerateNewQuizFromText;
 
-            if (stream == null) return ServiceResult<Guid>.Failed("No file provided.");
+            if (stream == null)
+                return ServiceResult<Guid>.Failed("No file provided.");
 
             string extension = Path.GetExtension(fileName).ToLower();
             byte[] buffer = new byte[4];
@@ -43,7 +50,7 @@ namespace Selfaware.Features.Quizzes
             {
                 (0x25, 0x50, 0x44, 0x46) => new PdfExtractor(),
                 (0x50, 0x4B, 0x03, 0x04) => new DocExtractor(),
-                _ => null
+                _ => null,
             };
 
             if (extractor == null)
@@ -56,7 +63,7 @@ namespace Selfaware.Features.Quizzes
             if (!aiResponse.Success || aiResponse.Data == null)
             {
                 return ServiceResult<Guid>.Failed(aiResponse.Message);
-            } 
+            }
 
             var questions = aiResponse.Data;
 
@@ -69,30 +76,35 @@ namespace Selfaware.Features.Quizzes
                 Slug = $"draft-{Guid.NewGuid()}",
                 QuizStatus = 0,
                 TimeLimit = 30,
-                Questions = questions.Questions.Select((q, index) => new Question
-                {
-                    Id = Guid.NewGuid(),
-                    Text = q.Text,
-                    Order = index + 1,
-                    Type = QuestionType.MultipleChoice,
+                Questions = questions
+                    .Questions.Select(
+                        (q, index) =>
+                            new Question
+                            {
+                                Id = Guid.NewGuid(),
+                                Text = q.Text,
+                                Order = index + 1,
+                                Type = QuestionType.MultipleChoice,
 
-                    Options = q.Options.Select(o => new Option
-                    {
-                        Id = Guid.NewGuid(),
-                        Text = o.Text,
-                        Score = o.Score
-                    }).ToList()
-                }).ToList()
-            }; 
+                                Options = q
+                                    .Options.Select(o => new Option
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        Text = o.Text,
+                                        Score = o.Score,
+                                    })
+                                    .ToList(),
+                            }
+                    )
+                    .ToList(),
+            };
 
-             _context.Quizzes.Add(generatedQuiz);
+            _context.Quizzes.Add(generatedQuiz);
             await _context.SaveChangesAsync(cancellationToken);
 
             var draftQuizId = generatedQuiz.Id;
-                
 
             return ServiceResult<Guid>.Ok(draftQuizId, aiResponse.Message);
         }
-
     }
 }

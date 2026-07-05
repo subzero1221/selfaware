@@ -10,6 +10,8 @@ public class CreateQuizDtoValidator : AbstractValidator<CreateQuizDto>
         RuleFor(x => x.Questions)
             .Must(q => q.Count <= 100)
             .WithMessage("A quiz cannot have more than 100 questions.");
-        RuleForEach(x => x.Questions).Cascade(CascadeMode.Stop).SetValidator(new CreateQuestionDtoValidator()); 
+        RuleForEach(x => x.Questions)
+            .Cascade(CascadeMode.Stop)
+            .SetValidator(new CreateQuestionDtoValidator());
     }
 }

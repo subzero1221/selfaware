@@ -13,8 +13,9 @@ namespace Selfaware.Features.Game.Lobby
 
         Task<ServiceResult<GetLobbyPlayerDto>> JoinLobbyAsync(JoinLobbyDto dto);
 
-        Task<ServiceResult<GetLobbyForPlayerDto>> GetLobbyForPlayerAsync(string joinCode, Guid playerId);
-
-        
+        Task<ServiceResult<GetLobbyForPlayerDto>> GetLobbyForPlayerAsync(
+            string joinCode,
+            Guid playerId
+        );
     }
 }

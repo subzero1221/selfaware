@@ -15,12 +15,10 @@ namespace Selfaware.Features.Quizzes.Entities
 
         public QuizStatus QuizStatus { get; set; }
 
-    
         public string QuizType { get; set; } = "Knowledge";
 
         public List<Question> Questions { get; set; } = new();
-        public string CreatedById { get; set; } = string.Empty; 
-        public ApplicationUser CreatedBy { get; set; } = null!; 
+        public string CreatedById { get; set; } = string.Empty;
+        public ApplicationUser CreatedBy { get; set; } = null!;
     }
 }
-

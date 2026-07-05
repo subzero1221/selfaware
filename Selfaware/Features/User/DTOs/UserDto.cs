@@ -1,6 +1,4 @@
-﻿
-
-namespace Selfaware.Features.User.DTOs
+﻿namespace Selfaware.Features.User.DTOs
 {
     public class UserDto
     {
@@ -10,6 +8,5 @@ namespace Selfaware.Features.User.DTOs
         public DateTime? UpdatedAt { get; set; }
         public string DisplayName { get; set; }
         public string Bio { get; set; }
-
     }
 }

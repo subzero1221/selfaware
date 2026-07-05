@@ -1,6 +1,4 @@
-﻿
-
-namespace Selfaware.Features.Auth.DTOs
+﻿namespace Selfaware.Features.Auth.DTOs
 {
     public class ChangePasswordDto
     {

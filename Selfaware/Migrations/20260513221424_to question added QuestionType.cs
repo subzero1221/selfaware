@@ -14,15 +14,14 @@ namespace Selfaware.Migrations
                 name: "QuestionType",
                 table: "Questions",
                 type: "text",
-                nullable: true);
+                nullable: true
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "QuestionType",
-                table: "Questions");
+            migrationBuilder.DropColumn(name: "QuestionType", table: "Questions");
         }
     }
 }

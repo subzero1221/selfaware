@@ -2,7 +2,7 @@
 
 namespace Selfaware.Shared.DocumentExtraction
 {
-    public class PdfExtractor:ITextExtractor
+    public class PdfExtractor : ITextExtractor
     {
         public string ExtractText(Stream fileStream)
         {

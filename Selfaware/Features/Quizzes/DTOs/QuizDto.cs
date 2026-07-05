@@ -1,23 +1,19 @@
-﻿
+﻿using System.Text.Json.Serialization;
 using Selfaware.Features.Quizzes.Enums;
-using System.Text.Json.Serialization;
 
 namespace Selfaware.Features.Quizzes.DTOs
 {
- 
-    public record QuizDto(Guid QuizId, string Description, int QuestionCount, int TimeLimitInMinutes, string? Title = null);
-    public record AiQuizResponseDto(
-        List<AiQuestionDto> Questions
+    public record QuizDto(
+        Guid QuizId,
+        string Description,
+        int QuestionCount,
+        int TimeLimitInMinutes,
+        string? Title = null
     );
 
-    public record AiQuestionDto(
-       string Text,
-       List<AiOptionDto> Options
-    );
+    public record AiQuizResponseDto(List<AiQuestionDto> Questions);
 
-    public record AiOptionDto(
-        string Text,
-        int Score
-    );
+    public record AiQuestionDto(string Text, List<AiOptionDto> Options);
 
+    public record AiOptionDto(string Text, int Score);
 }

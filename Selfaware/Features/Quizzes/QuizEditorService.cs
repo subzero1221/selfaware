@@ -5,7 +5,6 @@ using Selfaware.Features.Quizzes.Enums;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Models;
 
-
 namespace Selfaware.Features.Quizzes
 {
     public class QuizEditorService : IQuizEditorService
@@ -17,9 +16,15 @@ namespace Selfaware.Features.Quizzes
             _context = context;
         }
 
-        public async Task<ServiceResult<Guid>> EditSettingsAsync(Guid quizId, string userId, EditQuizSettingsDto dto)
+        public async Task<ServiceResult<Guid>> EditSettingsAsync(
+            Guid quizId,
+            string userId,
+            EditQuizSettingsDto dto
+        )
         {
-            var quiz = await _context.Quizzes.Where(quiz => quiz.Id == quizId && quiz.CreatedById == userId).FirstOrDefaultAsync();
+            var quiz = await _context
+                .Quizzes.Where(quiz => quiz.Id == quizId && quiz.CreatedById == userId)
+                .FirstOrDefaultAsync();
             if (quiz == null)
             {
                 return ServiceResult<Guid>.Failed("Quiz not found or access denied");
@@ -42,7 +47,9 @@ namespace Selfaware.Features.Quizzes
                     }
                     else
                     {
-                        return ServiceResult<Guid>.Failed("Invalid time limit format. Must be an integer.");
+                        return ServiceResult<Guid>.Failed(
+                            "Invalid time limit format. Must be an integer."
+                        );
                     }
                     break;
 
@@ -53,16 +60,20 @@ namespace Selfaware.Features.Quizzes
             await _context.SaveChangesAsync();
 
             return ServiceResult<Guid>.Ok(quizId, "Quiz settings edit success");
-
         }
 
-        public async Task<ServiceResult<Guid>> EditQuestionAsync(Guid quizId, Guid questionId, string userId, EditQuestionDto dto)
+        public async Task<ServiceResult<Guid>> EditQuestionAsync(
+            Guid quizId,
+            Guid questionId,
+            string userId,
+            EditQuestionDto dto
+        )
         {
-            var question = await _context.Questions
-                .Include(q => q.Options)
-       .FirstOrDefaultAsync(q => q.QuizId == quizId
-                           && q.Id == questionId
-                           && q.Quiz.CreatedById == userId);
+            var question = await _context
+                .Questions.Include(q => q.Options)
+                .FirstOrDefaultAsync(q =>
+                    q.QuizId == quizId && q.Id == questionId && q.Quiz.CreatedById == userId
+                );
             if (question == null)
             {
                 return ServiceResult<Guid>.Failed("Question not found or access denied");
@@ -83,26 +94,28 @@ namespace Selfaware.Features.Quizzes
             await _context.SaveChangesAsync();
 
             return ServiceResult<Guid>.Ok(questionId, "Question update success");
-
         }
 
-        public async Task<ServiceResult<Guid>> DeleteQuestionAsync(Guid quizId, Guid questionId, string userId)
+        public async Task<ServiceResult<Guid>> DeleteQuestionAsync(
+            Guid quizId,
+            Guid questionId,
+            string userId
+        )
         {
-            var deletedCount = await _context.Questions
-     .Where(question =>
-         question.Id == questionId &&
-         question.QuizId == quizId &&
-         question.Quiz.CreatedById == userId)
-     .ExecuteDeleteAsync();
-        
-         if(deletedCount == 0)
+            var deletedCount = await _context
+                .Questions.Where(question =>
+                    question.Id == questionId
+                    && question.QuizId == quizId
+                    && question.Quiz.CreatedById == userId
+                )
+                .ExecuteDeleteAsync();
+
+            if (deletedCount == 0)
             {
                 return ServiceResult<Guid>.Failed("Question not found or access denied");
             }
 
             return ServiceResult<Guid>.Ok(questionId, "Question delete success");
         }
-
-
     }
 }

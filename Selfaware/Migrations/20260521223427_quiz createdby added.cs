@@ -15,12 +15,14 @@ namespace Selfaware.Migrations
                 table: "Quizzes",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: ""
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Quizzes_CreatedById",
                 table: "Quizzes",
-                column: "CreatedById");
+                column: "CreatedById"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Quizzes_AspNetUsers_CreatedById",
@@ -28,7 +30,8 @@ namespace Selfaware.Migrations
                 column: "CreatedById",
                 principalTable: "AspNetUsers",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
         }
 
         /// <inheritdoc />
@@ -36,15 +39,12 @@ namespace Selfaware.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_Quizzes_AspNetUsers_CreatedById",
-                table: "Quizzes");
+                table: "Quizzes"
+            );
 
-            migrationBuilder.DropIndex(
-                name: "IX_Quizzes_CreatedById",
-                table: "Quizzes");
+            migrationBuilder.DropIndex(name: "IX_Quizzes_CreatedById", table: "Quizzes");
 
-            migrationBuilder.DropColumn(
-                name: "CreatedById",
-                table: "Quizzes");
+            migrationBuilder.DropColumn(name: "CreatedById", table: "Quizzes");
         }
     }
 }

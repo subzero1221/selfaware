@@ -1,10 +1,8 @@
 ﻿namespace Selfaware.Features.Auth.DTOs
 {
-    
-        public class ConfirmEmailDto
-        {
-            public string UserId { get; set; }
-            public string Code { get; set; }
-        }
+    public class ConfirmEmailDto
+    {
+        public string UserId { get; set; }
+        public string Code { get; set; }
     }
-
+}

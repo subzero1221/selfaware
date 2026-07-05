@@ -2,7 +2,7 @@
 
 namespace Selfaware.Shared.DocumentExtraction
 {
-    public class DocExtractor:ITextExtractor
+    public class DocExtractor : ITextExtractor
     {
         public string ExtractText(Stream fileStream)
         {
@@ -10,7 +10,6 @@ namespace Selfaware.Shared.DocumentExtraction
             {
                 return document.Text;
             }
-
         }
     }
 }

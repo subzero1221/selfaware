@@ -11,24 +11,19 @@ namespace Selfaware.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "CorrectAnswerIndex",
-                table: "Questions");
+            migrationBuilder.DropColumn(name: "CorrectAnswerIndex", table: "Questions");
 
-            migrationBuilder.DropColumn(
-                name: "OptionsJson",
-                table: "Questions");
+            migrationBuilder.DropColumn(name: "OptionsJson", table: "Questions");
 
-            migrationBuilder.DropColumn(
-                name: "QuestionType",
-                table: "Questions");
+            migrationBuilder.DropColumn(name: "QuestionType", table: "Questions");
 
             migrationBuilder.AddColumn<int>(
                 name: "Type",
                 table: "Questions",
                 type: "integer",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 0
+            );
 
             migrationBuilder.CreateTable(
                 name: "Option",
@@ -37,7 +32,7 @@ namespace Selfaware.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     QuestionId = table.Column<Guid>(type: "uuid", nullable: false),
                     Text = table.Column<string>(type: "text", nullable: false),
-                    Score = table.Column<int>(type: "integer", nullable: false)
+                    Score = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -47,44 +42,47 @@ namespace Selfaware.Migrations
                         column: x => x.QuestionId,
                         principalTable: "Questions",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Option_QuestionId",
                 table: "Option",
-                column: "QuestionId");
+                column: "QuestionId"
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Option");
+            migrationBuilder.DropTable(name: "Option");
 
-            migrationBuilder.DropColumn(
-                name: "Type",
-                table: "Questions");
+            migrationBuilder.DropColumn(name: "Type", table: "Questions");
 
             migrationBuilder.AddColumn<int>(
                 name: "CorrectAnswerIndex",
                 table: "Questions",
                 type: "integer",
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.AddColumn<string>(
                 name: "OptionsJson",
                 table: "Questions",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: ""
+            );
 
             migrationBuilder.AddColumn<string>(
                 name: "QuestionType",
                 table: "Questions",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: ""
+            );
         }
     }
 }

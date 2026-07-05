@@ -1,154 +1,99 @@
-﻿
+﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Selfaware.Features.Game.GameSession.DTOs;
 using Selfaware.Features.Game.GameSession.Entities;
 using Selfaware.Features.Game.GameSession.Helpers;
-using Selfaware.Features.Game.Lobby.DTOs;
-using Selfaware.Features.Quizzes.Entities;
+using Selfaware.Features.Game.RedisRepos;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Models;
 using StackExchange.Redis;
-using System.Text.Json;
-
-
 
 namespace Selfaware.Features.Game.GameSession
 {
     public class GameSessionService : IGameSessionService
     {
-        private readonly IDatabase _redis;
+
         private readonly AppDbContext _context;
+        private readonly GameRedisRepository _gameRepo;
+        private readonly GamePlayerRedisRepository _gamePlayerRepo;
 
-        public GameSessionService(IConnectionMultiplexer redisMux, AppDbContext context)
+        public GameSessionService(
+            AppDbContext context,
+            GameRedisRepository gameRepo,
+            GamePlayerRedisRepository gamePlayerRepo
+        )
         {
-            _redis = redisMux.GetDatabase();
             _context = context;
+            _gameRepo = gameRepo;
+            _gamePlayerRepo = gamePlayerRepo;
         }
 
-        public async Task<ServiceResult<string>> PlayerIsReadyAsync(string playerId, string joinCode, string ConnectionId)
+        public async Task<ServiceResult<string>> PlayerIsReadyAsync(
+            string playerId,
+            string joinCode,
+            string ConnectionId
+        )
         {
+            var player = await _gamePlayerRepo.GetRequiredLobbyPlayerAsync(joinCode, playerId);
 
-            string playersKey = $"lobby:{joinCode}:players";
-            string playerJson = await _redis.HashGetAsync(playersKey, playerId);
+            
+            var updatedPlayer = player with { IsReady = true };
 
-            if (string.IsNullOrEmpty(playerJson))
-            {
-                return ServiceResult<string>.Failed("Player not found.");
-            }
+        
+            await _gamePlayerRepo.SaveLobbyPlayerAsync(joinCode, playerId, updatedPlayer);
 
-            var player = JsonSerializer.Deserialize<GetLobbyPlayerDto>(playerJson);
-            var updatedPlayer = player with { IsReady = true, SignalRConnectionId = ConnectionId };
-            string updatedJson = JsonSerializer.Serialize(updatedPlayer);
-            await _redis.HashSetAsync(playersKey, playerId, updatedJson);
-
-            return ServiceResult<string>.Ok(updatedPlayer.SignalRConnectionId, "Player is ready!");
-
-
+            return ServiceResult<string>.Ok("Player readiness updated successfully.");
         }
+        
 
-        public async Task<ServiceResult<string>> PlayerIsNotReadyAsync(string playerId, string joinCode, string ConnectionId)
+        public async Task<ServiceResult<string>> PlayerIsNotReadyAsync(
+            string playerId,
+            string joinCode,
+            string ConnectionId
+        )
         {
+            var player = await _gamePlayerRepo.GetRequiredLobbyPlayerAsync(joinCode, playerId);
 
-            string playersKey = $"lobby:{joinCode}:players";
+
+            var updatedPlayer = player with { IsReady = false};
 
 
-            string playerJson = await _redis.HashGetAsync(playersKey, playerId);
+            await _gamePlayerRepo.SaveLobbyPlayerAsync(joinCode, playerId, updatedPlayer);
 
-            if (string.IsNullOrEmpty(playerJson))
-            {
-                return ServiceResult<string>.Failed("Player not found.");
-            }
-
-            var player = JsonSerializer.Deserialize<GetLobbyPlayerDto>(playerJson);
-
-            var updatedPlayer = player with { IsReady = false };
-            string updatedJson = JsonSerializer.Serialize(updatedPlayer);
-
-            await _redis.HashSetAsync(playersKey, playerId, updatedJson);
-
-            return ServiceResult<string>.Ok(updatedPlayer.SignalRConnectionId, "Player is ready!");
+            return ServiceResult<string>.Ok("Player readiness updated successfully.");
         }
 
         public async Task<ServiceResult<string>> LeaveLobbyAsync(string playerId, string joinCode)
         {
-
             if (string.IsNullOrEmpty(playerId) || string.IsNullOrEmpty(joinCode))
             {
-
                 return ServiceResult<string>.Failed("Invalid ID or Code");
             }
-            string playersKey = $"lobby:{joinCode}:players";
-            await _redis.HashDeleteAsync(playersKey, playerId);
+
+            await _gamePlayerRepo.DeleteLobbyPlayerAsync(joinCode, playerId);
 
             return ServiceResult<string>.Ok(playerId, "Player deleted succesfully");
-
         }
 
-        public async Task<ServiceResult<GameDto>> StartGameAsync(string joinCode, string hostId, Guid quizId, string connectionId)
+        public async Task<ServiceResult<GameDto>> StartGameAsync(
+            string joinCode,
+            string hostId,
+            Guid quizId,
+            string connectionId
+        )
         {
-            string joinCodeStr = $"lobby:{joinCode}";
-            var lobbyTask = _redis.HashGetAllAsync(joinCodeStr);
-            var playersTask = _redis.HashGetAllAsync($"{joinCodeStr}:players");
+            //Getting players from lobby
+            var playersList = await _gamePlayerRepo.GetLobbyPlayersAsync(joinCode);
 
-            await Task.WhenAll(lobbyTask, playersTask);
-            var hashEntries = lobbyTask.Result;
-            var playerEntries = playersTask.Result;
-
-
-
-            var lobbyDict = hashEntries.ToDictionary(e => e.Name.ToString(), e => e.Value.ToString());
-
-
-            var playersList = new List<GetLobbyPlayerDto>();
-            foreach (var player in playerEntries)
-            {
-                var playerDto = JsonSerializer.Deserialize<GetLobbyPlayerDto>(player.Value.ToString());
-                if (playerDto != null)
-                {
-                    playersList.Add(playerDto);
-                }
-            }
-
-            string gameKey = $"game:{joinCode}";
-            string gamePlayersKey = $"game:{joinCode}:players";
+            //Declaring new props for game
             Guid gameId = Guid.NewGuid();
             string startedAtIso = DateTime.UtcNow.ToString("o");
-            int TotalQuestionCount = await _context.Questions.Where(q => q.QuizId == quizId).CountAsync();
+            int TotalQuestionCount = await _context
+                .Questions.Where(q => q.QuizId == quizId)
+                .CountAsync();
 
-            var gameData = new HashEntry[]
-         {
-                 new HashEntry("Id", gameId.ToString()),
-                 new HashEntry("QuizId", quizId.ToString()),
-                 new HashEntry("HostId", hostId),
-                 new HashEntry("State", SessionState.Answering.ToString()),
-                 new HashEntry("CurrentQuestionIndex", 0),
-                 new HashEntry("CreatedAt", startedAtIso),
-                 new HashEntry("TotalQuestionCount", TotalQuestionCount)
-         };
-
-            await _redis.HashSetAsync(gameKey, gameData);
-
-
-
-            var gamePlayerList = playersList.Select(player => new GamePlayerDto(
-                PlayerId: player.Id,
-                NickName: player.NickName,
-                State: 0,
-                Score: 0,
-                Streak: 0,
-                SignalRConnectionId: player.SignalRConnectionId
-                )).ToList();
-
-            var playerHashEntries = gamePlayerList.Select(player =>
-            new HashEntry(player.PlayerId.ToString(), JsonSerializer.Serialize(player))
-             ).ToArray();
-
-            await _redis.HashSetAsync(gamePlayersKey, playerHashEntries);
-
-            //Console.WriteLine($"Enter Game Service{quizId} quizid");
-
-            var question = await _context.Questions
-                .Include(q => q.Options)
+            var question = await _context
+                .Questions.Include(q => q.Options)
                 .Where(q => q.QuizId == quizId)
                 .OrderBy(q => q.Order)
                 .ThenBy(question => question.Id)
@@ -159,307 +104,277 @@ namespace Selfaware.Features.Game.GameSession
                 return ServiceResult<GameDto>.Failed("This quiz doesnt have any questions");
             }
 
+            var correctOption = question.Options.FirstOrDefault(option => option.Score == 1);
+            if (correctOption == null)
+            {
+                return ServiceResult<GameDto>.Failed("Active question is missing a designated correct option.");
+            }
 
-            string questionKey = $"game:{joinCode}";
-            var correctOption = question.Options
-                               .FirstOrDefault(option => option.Score == 1);
+            Guid correctOptionId = correctOption.Id;
 
+            var activeQuestionDto = new ActiveQuestionDto(
+                Id: question.Id,
+                Text: question.Text,
+                Options: question
+                    .Options.Select(option => new ActiveOptionDto(option.Id, option.Text))
+                    .ToList()
+            );
+            
+            long expiresAtUnix = DateTimeOffset.UtcNow.AddSeconds(10).ToUnixTimeSeconds();
 
-            var questionForRedis = new HashEntry[]
-                {
-                new HashEntry("CurrentQuestionId", question.Id.ToString()),
-                new HashEntry("CorrectOptionId", correctOption!.Id.ToString())
-                };
+            //setting new started game into hash
+            await _gameRepo.StartGameSessionAsync(
+                joinCode,
+                gameId,
+                quizId,
+                hostId,
+                TotalQuestionCount,
+                activeQuestionDto,
+                correctOptionId,
+                expiresAtUnix
+            );
 
+            var gamePlayerList = playersList
+                .Select(player => new GamePlayerDto(
+                    PlayerId: player.Id,
+                    NickName: player.NickName,
+                    State: 0,
+                    Score: 0,
+                    Streak: 0,
+                    SignalRConnectionId: player.SignalRConnectionId
+                ))
+                .ToList();
 
-            await _redis.HashSetAsync(questionKey, questionForRedis);
-
-
-
+            //setting gameplayers into hash
+            await _gamePlayerRepo.SetPlayersAsync(joinCode, gamePlayerList);
 
             var newGame = new GameDto(
                 Id: gameId,
                 QuizId: quizId,
-                CurrentQuestion: new ActiveQuestionDto
-                (
-                 Id: question.Id,
-                 Text: question.Text,
-                 Options: question.Options.Select(option =>
-                 new ActiveOptionDto
-                 (
-                     Id: option.Id,
-                     Text: option.Text
-                     )).ToList()
-                    ),
+                CurrentQuestion: new ActiveQuestionDto(
+                    Id: question.Id,
+                    Text: question.Text,
+                    Options: question
+                        .Options.Select(option => new ActiveOptionDto(
+                            Id: option.Id,
+                            Text: option.Text
+                        ))
+                        .ToList()
+                ),
                 CurrentQuestionIndex: 0,
                 Players: gamePlayerList,
                 State: SessionState.Answering,
                 TotalQuestions: TotalQuestionCount,
-                TimeLimitSeconds: 30
-                );
+                TimeLimitSeconds: 10
+            );
 
             Console.WriteLine($"Enter Game Service{newGame} quizid");
 
             return ServiceResult<GameDto>.Ok(newGame, "Game is Ready");
         }
 
-        public async Task<ServiceResult<GameDto>> ShowLeaderBoardAsync(string joinCode, string playerId)
+        public async Task<ServiceResult<GameDto>> ShowLeaderBoardAsync(
+            string joinCode,
+            string playerId
+        )
         {
-            string gameKey = $"game:{joinCode}";
-            string playersKey = $"game:{joinCode}:players";
-            var playerEntries = await _redis.HashGetAllAsync(playersKey);
 
-            bool isPlayerInGame = playerEntries.Any(player => player.Name == playerId.ToString());
+            var playerList = await _gamePlayerRepo.GetGamePlayersAsync(joinCode);
+            bool isPlayerInGame = playerList.Any(player => player.PlayerId.ToString() == playerId);
             if (!isPlayerInGame)
             {
-                return ServiceResult<GameDto>.Failed("You are not member of this lobby");
+                return ServiceResult<GameDto>.Failed("Your not in the game");
             }
 
-            var playerList = playerEntries
-           .Select(p => JsonSerializer.Deserialize<GamePlayerDto>(p.Value.ToString()))
-           .OfType<GamePlayerDto>()
-           .ToList();
 
+            var gameMeta = await _gameRepo.GetGameMetaAsync(joinCode);
 
-            var gameEntries = await _redis.HashGetAllAsync(gameKey);
-            if (gameEntries.Length == 0)
-            {
-                return ServiceResult<GameDto>.Failed("Game not found.");
-            }
-
-            var gameMeta = gameEntries.ToDictionary(e => e.Name.ToString(), e => e.Value.ToString());
 
             Guid gameId = Guid.Parse(gameMeta["Id"]);
-            Guid hostId = Guid.Parse(gameMeta["HostId"]);
             Guid quizId = Guid.Parse(gameMeta["QuizId"]);
             int currentIndex = int.Parse(gameMeta["CurrentQuestionIndex"]);
-            string stateString = gameMeta["State"];
-            string createdAt = gameMeta["CreatedAt"];
+            long expiresAtUnix = DateTimeOffset.UtcNow.AddSeconds(10).ToUnixTimeSeconds();
 
-            SessionState sessionState = Enum.Parse<SessionState>(stateString);
+            var updatedGame = new HashEntry[]
+            {
+                new HashEntry("State", SessionState.ShowingLeaderBoard.ToString()),
+                new HashEntry("leaderBoardTimeLeft", expiresAtUnix),
+            };
 
-            var gameData = new HashEntry[]
-        {
-                 new HashEntry("Id", gameId.ToString()),
-                 new HashEntry("QuizId", quizId.ToString()),
-                 new HashEntry("HostId", hostId.ToString()),
-                 new HashEntry("State", SessionState.ShowingLeaderBoard.ToString()),
-                 new HashEntry("CurrentQuestionIndex", currentIndex),
-                 new HashEntry("CreatedAt", createdAt)
-        };
-
-            await _redis.HashSetAsync(gameKey, gameData);
+            await _gameRepo.SaveGameMetaAsync(joinCode, updatedGame);
 
             var game = new GameDto(
-              Id: gameId,
-              QuizId: quizId,
-              CurrentQuestionIndex: currentIndex,
-              Players: playerList,
-              State: SessionState.ShowingLeaderBoard
-              );
-
+                Id: gameId,
+                QuizId: quizId,
+                CurrentQuestionIndex: currentIndex,
+                Players: playerList,
+                State: SessionState.ShowingLeaderBoard
+            );
 
             return ServiceResult<GameDto>.Ok(game, "Leaderboard return success");
         }
 
-        public async Task<ServiceResult<GameDto>> NextQuestionAsync(string joinCode, string playerId)
+        public async Task<ServiceResult<GameDto>> NextQuestionAsync(
+            string joinCode,
+            string playerId
+        )
         {
-            string gameKey = $"game:{joinCode}";
-            string playersKey = $"game:{joinCode}:players";
-            var playerEntries = await _redis.HashGetAllAsync(playersKey);
 
-            bool isPlayerInGame = playerEntries.Any(player => player.Name == playerId.ToString());
-            if (!isPlayerInGame)
+            bool acquiredLock = await _gameRepo.LockGameAsync(joinCode);
+            if (!acquiredLock)
             {
-                return ServiceResult<GameDto>.Failed("You are not member of this lobby");
+                return await GetGameAsync(joinCode, playerId);
             }
 
-            var playerList = playerEntries
-           .Select(p => JsonSerializer.Deserialize<GamePlayerDto>(p.Value.ToString()))
-           .OfType<GamePlayerDto>()
-           .ToList();
+            var playerList = await _gamePlayerRepo.GetGamePlayersAsync(joinCode);
 
-            var updatedPlayerList = playerList.Select(p => p with { State = PlayerState.Answering }).ToList();
+            var updatedPlayerList = playerList
+                .Select(p => p with { State = PlayerState.Answering })
+                .ToList();
 
-            var playerHashEntries = updatedPlayerList.Select(player =>
-            new HashEntry(player.PlayerId.ToString(), JsonSerializer.Serialize(player))
-           ).ToArray();
+            await _gamePlayerRepo.SetPlayersAsync(joinCode, updatedPlayerList);
 
 
-            var gameEntries = await _redis.HashGetAllAsync(gameKey);
-            if (gameEntries.Length == 0)
-            {
-                return ServiceResult<GameDto>.Failed("Game not found.");
-            }
-
-            var gameMeta = gameEntries.ToDictionary(e => e.Name.ToString(), e => e.Value.ToString());
+            var gameMeta = await _gameRepo.GetGameMetaAsync(joinCode);
+           
 
             Guid gameId = Guid.Parse(gameMeta["Id"]);
             Guid quizId = Guid.Parse(gameMeta["QuizId"]);
             int currentIndex = int.Parse(gameMeta["CurrentQuestionIndex"]);
             int totalQuestionCount = int.Parse(gameMeta["TotalQuestionCount"]);
 
-
             int nextIndex = currentIndex + 1;
 
-            var question = await _context.Questions
-                           .Include(question => question.Options)
-                           .Where(question => question.QuizId == quizId)
-                           .OrderBy(question => question.Order)
-                           .ThenBy(question => question.Id)
-                           .Skip(nextIndex)
-                           .FirstOrDefaultAsync();
+            var question = await _context
+                .Questions.Include(question => question.Options)
+                .Where(question => question.QuizId == quizId)
+                .OrderBy(question => question.Order)
+                .ThenBy(question => question.Id)
+                .Skip(nextIndex)
+                .FirstOrDefaultAsync();
 
             if (question == null)
             {
                 return ServiceResult<GameDto>.Failed("Active question not found");
             }
 
+            
 
-            await _redis.HashSetAsync(playersKey, playerHashEntries);
+            var activeQuestionDto = new ActiveQuestionDto(
+                Id: question.Id,
+                Text: question.Text,
+                Options: question
+                    .Options.Select(option => new ActiveOptionDto(option.Id, option.Text))
+                    .ToList()
+            );
 
             var correctOption = question.Options.FirstOrDefault(option => option.Score == 1);
+            long expiresAtUnix = DateTimeOffset.UtcNow.AddSeconds(10).ToUnixTimeSeconds();
+
             var gameUpdates = new HashEntry[]
             {
-               new HashEntry("State", SessionState.Answering.ToString()),
-               new HashEntry("CurrentQuestionIndex", nextIndex.ToString()),
-               new HashEntry("CurrentQuestionId", question.Id.ToString()),
-               new HashEntry("CorrectOptionId", correctOption?.Id.ToString() ?? string.Empty)
+                new HashEntry("State", SessionState.Answering.ToString()),
+                new HashEntry("CurrentQuestionIndex", nextIndex.ToString()),
+                new HashEntry("CurrentQuestionId", question.Id.ToString()),
+                new HashEntry("CorrectOptionId", correctOption?.Id.ToString() ?? string.Empty),
+                new HashEntry("CurrentQuestion", JsonSerializer.Serialize(activeQuestionDto)),
+                new HashEntry("QuestionTimeExpiresAt", expiresAtUnix.ToString()),
             };
-            await _redis.HashSetAsync(gameKey, gameUpdates);
-
+            await _gameRepo.SaveGameMetaAsync(joinCode, gameUpdates);
 
             var updatedGame = new GameDto(
                 Id: gameId,
                 QuizId: quizId,
-                CurrentQuestion: new ActiveQuestionDto
-                (
+                CurrentQuestion: new ActiveQuestionDto(
                     Id: question.Id,
                     Text: question.Text,
-                    Options: question.Options.Select(option => new ActiveOptionDto
-                    (
-                        Id: option.Id,
-                        Text: option.Text
-                    )).ToList()
+                    Options: question
+                        .Options.Select(option => new ActiveOptionDto(
+                            Id: option.Id,
+                            Text: option.Text
+                        ))
+                        .ToList()
                 ),
                 CurrentQuestionIndex: nextIndex,
                 Players: updatedPlayerList,
                 State: SessionState.Answering,
                 TotalQuestions: totalQuestionCount,
-                TimeLimitSeconds: 30
+                TimeLimitSeconds: 30,
+                TimeLeft: 10
             );
 
             return ServiceResult<GameDto>.Ok(updatedGame, "Next question set successfully");
         }
 
-
-
         public async Task<ServiceResult<GamePlayerDto>> SubmitAnswerAsync(SubmitAnswerDto dto)
         {
-            string gameKey = $"game:{dto.JoinCode}";
-            var gameEntries = await _redis.HashGetAllAsync(gameKey);
-            if (gameEntries.Length == 0)
-            {
-                return ServiceResult<GamePlayerDto>.Failed("Game not found.");
-            }
 
-            string playersKey = $"game:{dto.JoinCode}:players";
-            RedisValue playerValue = await _redis.HashGetAsync(playersKey, dto.PlayerId);
+            var player = await _gamePlayerRepo.GetGamePlayerAsync(dto.JoinCode, dto.PlayerId);
 
-            if (!playerValue.HasValue)
-            {
-                return ServiceResult<GamePlayerDto>.Failed("You are not a member of this lobby");
-            }
-
-            var player = JsonSerializer.Deserialize<GamePlayerDto>(playerValue.ToString());
-            if (player == null)
-            {
-                return ServiceResult<GamePlayerDto>.Failed("Player not found");
-            }
-
-            if (player.State == PlayerState.Answered)
-            {
-                return ServiceResult<GamePlayerDto>.Failed("You have already submitted an answer for this question.");
-            }
-
-
-            var validationRules = await _redis.HashGetAsync(gameKey, new RedisValue[] { "CurrentQuestionId", "CorrectOptionId" });
-
+            var validate = new[] { "CurrentQuestionId", "CorrectOptionId", "QuestionTimeExpiresAt" };
+            var validationRules = await _gameRepo.GetMetaFieldsAsync(dto.JoinCode, validate);
 
 
             string currentQuestionId = validationRules[0];
-            Console.WriteLine($"Questionid vs currquestionid: {dto.QuestionId} vs {currentQuestionId}");
+            Console.WriteLine(
+                $"Questionid vs currquestionid: {dto.QuestionId} vs {currentQuestionId}"
+            );
             string correctOptionId = validationRules[1];
+            long expiresAtUnix = long.Parse(validationRules[2]);
+            long currentTimeUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long difference = expiresAtUnix - currentTimeUnix;
+            int timeLeftSeconds = Math.Max(0, (int)difference);
 
             if (currentQuestionId != dto.QuestionId)
             {
                 return ServiceResult<GamePlayerDto>.Failed("This question is no longer active.");
             }
 
-            
             bool playerIsCorrect = dto.OptionId == correctOptionId;
             Console.WriteLine($"{playerIsCorrect} cuz: {dto.OptionId} and {correctOptionId}");
             GamePlayerDto updatedPlayer;
 
             if (!playerIsCorrect)
             {
-                updatedPlayer = new GamePlayerDto
-                (
-                     PlayerId: player.PlayerId,
-                     NickName: player.NickName,
-                     State: PlayerState.Answered,
-                     Score: player.Score,
-                     Streak: 0,
-                     SignalRConnectionId: player.SignalRConnectionId
+                updatedPlayer = new GamePlayerDto(
+                    PlayerId: player.PlayerId,
+                    NickName: player.NickName,
+                    State: PlayerState.Answered,
+                    Score: player.Score,
+                    Streak: 0,
+                    SignalRConnectionId: player.SignalRConnectionId
                 );
             }
             else
             {
-                int newScore = GameCalculator.CalculateScore(dto.OnSecond, player.Score, player.Streak);
-                updatedPlayer = new GamePlayerDto
-                (
-                     PlayerId: player.PlayerId,
-                     NickName: player.NickName,
-                     State: PlayerState.Answered,
-                     Score: newScore,
-                     Streak: player.Streak + 1,
-                     SignalRConnectionId: player.SignalRConnectionId
+                int newScore = GameCalculator.CalculateScore(
+                    timeLeftSeconds,
+                    player.Score,
+                    player.Streak
+                );
+                updatedPlayer = new GamePlayerDto(
+                    PlayerId: player.PlayerId,
+                    NickName: player.NickName,
+                    State: PlayerState.Answered,
+                    Score: newScore,
+                    Streak: player.Streak + 1,
+                    SignalRConnectionId: player.SignalRConnectionId
                 );
             }
 
-            string serializedPlayer = JsonSerializer.Serialize(updatedPlayer);
-            await _redis.HashSetAsync(playersKey, dto.PlayerId, serializedPlayer);
+            await _gamePlayerRepo.SetGamePlayerAsync(dto.JoinCode, dto.PlayerId, updatedPlayer);
 
             return ServiceResult<GamePlayerDto>.Ok(updatedPlayer, "Asnwer submit success");
-
         }
-
 
         //Http Reqs
         public async Task<ServiceResult<GameDto>> GetGameAsync(string joinCode, string playerId)
         {
-            string gameKey = $"game:{joinCode}";
-            var gameEntries = await _redis.HashGetAllAsync(gameKey);
-            if (gameEntries.Length == 0)
-            {
-                return ServiceResult<GameDto>.Failed("Game not found.");
-            }
 
-            string playersKey = $"game:{joinCode}:players";
-            var playerEntries = await _redis.HashGetAllAsync(playersKey);
+            var gameMeta = await _gameRepo.GetGameMetaAsync(joinCode);
+            var playerList = await _gamePlayerRepo.GetGamePlayersAsync(joinCode);
 
-            bool isPlayerInGame = playerEntries.Any(player => player.Name == playerId.ToString());
-            if (!isPlayerInGame)
-            {
-                return ServiceResult<GameDto>.Failed("You are not member of this lobby");
-            }
 
-            var playerList = playerEntries
-           .Select(p => JsonSerializer.Deserialize<GamePlayerDto>(p.Value.ToString()))
-           .OfType<GamePlayerDto>()
-           .ToList();
-
-            var gameMeta = gameEntries.ToDictionary(e => e.Name.ToString(), e => e.Value.ToString());
 
             Guid gameId = Guid.Parse(gameMeta["Id"]);
             Guid quizId = Guid.Parse(gameMeta["QuizId"]);
@@ -467,46 +382,47 @@ namespace Selfaware.Features.Game.GameSession
             int totalQuestionCount = int.Parse(gameMeta["TotalQuestionCount"]);
             string stateString = gameMeta["State"];
 
+            long expiresAtUnix =
+                stateString == "Answering"
+                    ? long.Parse(gameMeta["QuestionTimeExpiresAt"])
+                    : long.Parse(gameMeta["leaderBoardTimeLeft"]);
+
+            long currentTimeUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long difference = expiresAtUnix - currentTimeUnix;
+            int timeLeftSeconds = Math.Max(0, (int)difference);
+
             SessionState sessionState = Enum.Parse<SessionState>(stateString);
 
-            var question = await _context.Questions
-                           .Include(question => question.Options)
-                           .Where(question => question.QuizId == quizId)
-                           .OrderBy(question => question.Order)
-                           .Skip(currentIndex)
-                           .FirstOrDefaultAsync();
+            string questionJson = gameMeta["CurrentQuestion"];
+            var activeQuestion = JsonSerializer.Deserialize<ActiveQuestionDto>(questionJson);
 
-            if (question == null)
+            if (activeQuestion == null)
             {
                 return ServiceResult<GameDto>.Failed("Active question not found");
             }
 
-
-
             var newGame = new GameDto(
                 Id: gameId,
                 QuizId: quizId,
-                CurrentQuestion: new ActiveQuestionDto
-                (
-                 Id: question.Id,
-                 Text: question.Text,
-                 Options: question.Options.Select(option =>
-                 new ActiveOptionDto
-                 (
-                     Id: option.Id,
-                     Text: option.Text
-                     )).ToList()
-                    ),
+                CurrentQuestion: new ActiveQuestionDto(
+                    Id: activeQuestion.Id,
+                    Text: activeQuestion.Text,
+                    Options: activeQuestion
+                        .Options.Select(option => new ActiveOptionDto(
+                            Id: option.Id,
+                            Text: option.Text
+                        ))
+                        .ToList()
+                ),
                 CurrentQuestionIndex: currentIndex,
                 Players: playerList,
                 State: sessionState,
                 TotalQuestions: totalQuestionCount,
-                TimeLimitSeconds: 30
-                );
+                TimeLimitSeconds: 30,
+                TimeLeft: timeLeftSeconds
+            );
 
             return ServiceResult<GameDto>.Ok(newGame, "Game found successfully");
-
         }
-
     }
 }

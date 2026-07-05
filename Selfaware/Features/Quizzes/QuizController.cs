@@ -1,10 +1,10 @@
-﻿using Google.GenAI.Types;
+﻿using System.Security.Claims;
+using Google.GenAI.Types;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Quizzes.DTOs.Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Shared.Models;
-using System.Security.Claims;
 
 namespace Selfaware.Features.Quizzes
 {
@@ -15,9 +15,12 @@ namespace Selfaware.Features.Quizzes
         private readonly IQuizService _quizService;
         private readonly IQuizGeneratorService _quizGeneratorService;
         private readonly IQuizEditorService _quizEditorService;
-        
 
-        public QuizController(IQuizService quizService, IQuizGeneratorService quizGeneratorService, IQuizEditorService quizEditorService)
+        public QuizController(
+            IQuizService quizService,
+            IQuizGeneratorService quizGeneratorService,
+            IQuizEditorService quizEditorService
+        )
         {
             _quizService = quizService;
             _quizGeneratorService = quizGeneratorService;
@@ -28,10 +31,9 @@ namespace Selfaware.Features.Quizzes
         [HttpPost]
         public async Task<ActionResult> createQuiz([FromBody] CreateQuizDto dto)
         {
-
             var result = await _quizService.CreateQuizAsync(dto);
 
-            return Ok(CustomResponse<QuizDto>.SuccessResponse( result.Data, result.Message ));
+            return Ok(CustomResponse<QuizDto>.SuccessResponse(result.Data, result.Message));
         }
 
         [Authorize(Roles = "Admin")]
@@ -39,7 +41,10 @@ namespace Selfaware.Features.Quizzes
         public async Task<ActionResult> PutQuiz([FromRoute] Guid id, [FromBody] PutQuizDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Unauthorized(CustomResponse<Guid>.ErrorResponse("Your have no permission for this action"));
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(
+                    CustomResponse<Guid>.ErrorResponse("Your have no permission for this action")
+                );
 
             if (id != dto.Id)
             {
@@ -70,12 +75,13 @@ namespace Selfaware.Features.Quizzes
             return Ok(CustomResponse<QuizSummaryDto>.SuccessResponse(createdQuiz.Data, createdQuiz.Message));
         }*/
 
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult> GetMyQuizzesAsync()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
             var result = await _quizService.GetMyQuizzesAsync(userId);
 
             if (result == null)
@@ -88,35 +94,42 @@ namespace Selfaware.Features.Quizzes
 
         [Authorize(Roles = "Admin")]
         [HttpPost("ai-generate")]
-        public async Task<ActionResult> ExtractExistingQuiz([FromForm] ExtractQuizRequestDto dto, CancellationToken cancellationToken)
+        public async Task<ActionResult> ExtractExistingQuiz(
+            [FromForm] ExtractQuizRequestDto dto,
+            CancellationToken cancellationToken
+        )
         {
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("You must be logged in to generate a quiz.");
             }
-            var result = await _quizGeneratorService.ExtractExistingQuizAsync(dto, userId, cancellationToken);
+            var result = await _quizGeneratorService.ExtractExistingQuizAsync(
+                dto,
+                userId,
+                cancellationToken
+            );
 
             if (!result.Success)
             {
                 return BadRequest(CustomResponse<Guid>.ErrorResponse(result.Message));
             }
 
-            return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, "Quiz generated Succesfully"));
+            return Ok(
+                CustomResponse<Guid>.SuccessResponse(result.Data, "Quiz generated Succesfully")
+            );
         }
 
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id:guid}")]
         public async Task<ActionResult> GetMyQuizAsync([FromRoute] Guid id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
 
- 
             var result = await _quizService.GetSingleQuizAsync(id, userId);
 
-    
             if (result == null)
             {
                 return NotFound(CustomResponse<string>.ErrorResponse("Quiz not found."));
@@ -125,12 +138,13 @@ namespace Selfaware.Features.Quizzes
             return Ok(CustomResponse<QuizDetailsDto>.SuccessResponse(result.Data, result.Message));
         }
 
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult> DeleteQuiz([FromRoute] Guid id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
 
             var result = await _quizService.DeleteQuizAsync(id, userId);
             if (result == null)
@@ -147,12 +161,16 @@ namespace Selfaware.Features.Quizzes
         /////////////
         ///////
 
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id:guid}/settings")]
-        public async Task<ActionResult> EditQuizSettings([FromRoute] Guid id, [FromBody] EditQuizSettingsDto dto)
+        public async Task<ActionResult> EditQuizSettings(
+            [FromRoute] Guid id,
+            [FromBody] EditQuizSettingsDto dto
+        )
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
 
             var result = await _quizEditorService.EditSettingsAsync(id, userId, dto);
             if (result == null)
@@ -161,15 +179,19 @@ namespace Selfaware.Features.Quizzes
             }
 
             return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
-
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id:guid}/questions/{questionId:guid}")]
-        public async Task<ActionResult> EditQuizQuestions([FromRoute] Guid id, Guid questionId, [FromBody] EditQuestionDto dto)
+        public async Task<ActionResult> EditQuizQuestions(
+            [FromRoute] Guid id,
+            Guid questionId,
+            [FromBody] EditQuestionDto dto
+        )
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
 
             var result = await _quizEditorService.EditQuestionAsync(id, questionId, userId, dto);
             if (result == null)
@@ -178,7 +200,6 @@ namespace Selfaware.Features.Quizzes
             }
 
             return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
-
         }
 
         [Authorize(Roles = "Admin")]
@@ -186,7 +207,8 @@ namespace Selfaware.Features.Quizzes
         public async Task<ActionResult> DeleteQuizQuestion([FromRoute] Guid id, Guid questionId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
 
             var result = await _quizEditorService.DeleteQuestionAsync(id, questionId, userId);
             if (result == null)
@@ -195,9 +217,6 @@ namespace Selfaware.Features.Quizzes
             }
 
             return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
-
         }
-
-    } 
     }
-
+}

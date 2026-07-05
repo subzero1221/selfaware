@@ -1,12 +1,10 @@
-﻿
-
-namespace Selfaware.Features.Game.Lobby.Entities
+﻿namespace Selfaware.Features.Game.Lobby.Entities
 {
     public enum LobbyState
     {
         WaitingForPlayers,
         Active,
-        Finished           
+        Finished,
     }
 
     public class Lobby
@@ -15,12 +13,10 @@ namespace Selfaware.Features.Game.Lobby.Entities
         public string JoinCode { get; set; } = string.Empty;
 
         public Guid QuizId { get; set; }
-   
 
         public string HostId { get; set; }
 
         public LobbyState State { get; set; } = LobbyState.WaitingForPlayers;
-
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

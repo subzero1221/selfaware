@@ -15,7 +15,8 @@ namespace Selfaware.Migrations
                 table: "Quizzes",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: ""
+            );
 
             migrationBuilder.AlterColumn<string>(
                 name: "QuestionType",
@@ -25,13 +26,15 @@ namespace Selfaware.Migrations
                 defaultValue: "",
                 oldClrType: typeof(string),
                 oldType: "text",
-                oldNullable: true);
+                oldNullable: true
+            );
 
             migrationBuilder.AddColumn<int>(
                 name: "CorrectAnswerIndex",
                 table: "Questions",
                 type: "integer",
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.AlterColumn<string>(
                 name: "Bio",
@@ -39,19 +42,16 @@ namespace Selfaware.Migrations
                 type: "text",
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "text");
+                oldType: "text"
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "QuizType",
-                table: "Quizzes");
+            migrationBuilder.DropColumn(name: "QuizType", table: "Quizzes");
 
-            migrationBuilder.DropColumn(
-                name: "CorrectAnswerIndex",
-                table: "Questions");
+            migrationBuilder.DropColumn(name: "CorrectAnswerIndex", table: "Questions");
 
             migrationBuilder.AlterColumn<string>(
                 name: "QuestionType",
@@ -59,7 +59,8 @@ namespace Selfaware.Migrations
                 type: "text",
                 nullable: true,
                 oldClrType: typeof(string),
-                oldType: "text");
+                oldType: "text"
+            );
 
             migrationBuilder.AlterColumn<string>(
                 name: "Bio",
@@ -69,7 +70,8 @@ namespace Selfaware.Migrations
                 defaultValue: "",
                 oldClrType: typeof(string),
                 oldType: "text",
-                oldNullable: true);
+                oldNullable: true
+            );
         }
     }
 }

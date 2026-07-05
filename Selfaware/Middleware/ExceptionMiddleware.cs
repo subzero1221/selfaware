@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
-using Selfaware.Shared.Models; 
+using Selfaware.Shared.Models;
 
 namespace Selfaware.Middleware
 {
@@ -27,16 +27,14 @@ namespace Selfaware.Middleware
             {
                 context.Response.ContentType = "application/json";
 
-            
                 var statusCode = HttpStatusCode.InternalServerError;
                 var displayMessage = "A server error occurred.";
 
-            
                 switch (ex)
                 {
                     case ArgumentException:
                     case InvalidOperationException:
-                    case FormatException: 
+                    case FormatException:
                         statusCode = HttpStatusCode.BadRequest;
                         displayMessage = $"Invalid request data. Details: {ex.Message}";
                         break;
@@ -52,21 +50,19 @@ namespace Selfaware.Middleware
                         statusCode = HttpStatusCode.GatewayTimeout;
                         displayMessage = "The operation timed out.";
                         break;
-                    
                 }
 
                 context.Response.StatusCode = (int)statusCode;
 
-               
                 var response = CustomResponse<object>.ErrorResponse(
                     displayMessage,
                     new List<string> { ex.Message }
                 );
 
-                var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                });
+                var json = JsonSerializer.Serialize(
+                    response,
+                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+                );
 
                 await context.Response.WriteAsync(json);
             }

@@ -16,26 +16,24 @@ namespace Selfaware.Migrations
                 table: "Quizzes",
                 type: "integer",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 0
+            );
 
             migrationBuilder.AddColumn<TimeSpan>(
                 name: "TimeLimit",
                 table: "Quizzes",
                 type: "interval",
                 nullable: false,
-                defaultValue: new TimeSpan(0, 0, 0, 0, 0));
+                defaultValue: new TimeSpan(0, 0, 0, 0, 0)
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "QuestionCount",
-                table: "Quizzes");
+            migrationBuilder.DropColumn(name: "QuestionCount", table: "Quizzes");
 
-            migrationBuilder.DropColumn(
-                name: "TimeLimit",
-                table: "Quizzes");
+            migrationBuilder.DropColumn(name: "TimeLimit", table: "Quizzes");
         }
     }
 }

@@ -4,8 +4,6 @@ using Selfaware.Shared.Models;
 
 namespace Selfaware.Features.Auth
 {
-
-    
     public interface IAuthService
     {
         Task<ServiceResult<AuthResult>> SignupUserAsync(SignupDto model);
@@ -17,6 +15,3 @@ namespace Selfaware.Features.Auth
         Task<ServiceResult<AuthResult>> RefreshTokenAsync(string refreshToken);
     }
 }
-
-
-

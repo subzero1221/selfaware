@@ -6,5 +6,4 @@
         Description = 1,
         TimeLimit = 2,
     }
-   
 }

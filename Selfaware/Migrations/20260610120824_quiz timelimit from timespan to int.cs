@@ -17,7 +17,8 @@ namespace Selfaware.Migrations
                 type: "integer",
                 nullable: false,
                 oldClrType: typeof(TimeSpan),
-                oldType: "interval");
+                oldType: "interval"
+            );
         }
 
         /// <inheritdoc />
@@ -29,7 +30,8 @@ namespace Selfaware.Migrations
                 type: "interval",
                 nullable: false,
                 oldClrType: typeof(int),
-                oldType: "integer");
+                oldType: "integer"
+            );
         }
     }
 }

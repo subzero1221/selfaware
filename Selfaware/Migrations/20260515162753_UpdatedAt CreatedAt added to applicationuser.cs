@@ -11,40 +11,37 @@ namespace Selfaware.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "ZodiacSign",
-                table: "AspNetUsers");
+            migrationBuilder.DropColumn(name: "ZodiacSign", table: "AspNetUsers");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "CreatedAt",
                 table: "AspNetUsers",
                 type: "timestamp with time zone",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+            );
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "UpdatedAt",
                 table: "AspNetUsers",
                 type: "timestamp with time zone",
-                nullable: true);
+                nullable: true
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "CreatedAt",
-                table: "AspNetUsers");
+            migrationBuilder.DropColumn(name: "CreatedAt", table: "AspNetUsers");
 
-            migrationBuilder.DropColumn(
-                name: "UpdatedAt",
-                table: "AspNetUsers");
+            migrationBuilder.DropColumn(name: "UpdatedAt", table: "AspNetUsers");
 
             migrationBuilder.AddColumn<string>(
                 name: "ZodiacSign",
                 table: "AspNetUsers",
                 type: "text",
-                nullable: true);
+                nullable: true
+            );
         }
     }
 }

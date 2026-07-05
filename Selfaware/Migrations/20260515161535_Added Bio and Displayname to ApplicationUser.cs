@@ -15,26 +15,24 @@ namespace Selfaware.Migrations
                 table: "AspNetUsers",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: ""
+            );
 
             migrationBuilder.AddColumn<string>(
                 name: "DisplayName",
                 table: "AspNetUsers",
                 type: "text",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: ""
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Bio",
-                table: "AspNetUsers");
+            migrationBuilder.DropColumn(name: "Bio", table: "AspNetUsers");
 
-            migrationBuilder.DropColumn(
-                name: "DisplayName",
-                table: "AspNetUsers");
+            migrationBuilder.DropColumn(name: "DisplayName", table: "AspNetUsers");
         }
     }
 }

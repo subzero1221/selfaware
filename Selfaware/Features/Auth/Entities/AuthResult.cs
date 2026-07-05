@@ -1,6 +1,4 @@
-﻿
-
-namespace Selfaware.Features.Auth.Entities
+﻿namespace Selfaware.Features.Auth.Entities
 {
     public class AuthResult
     {

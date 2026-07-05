@@ -12,10 +12,8 @@ namespace Selfaware.Features.Quizzes.Entities
         public string Text { get; set; } = string.Empty;
         public int Order { get; set; }
 
-    
         public QuestionType Type { get; set; } = QuestionType.SingleChoice;
 
-     
         public List<Option> Options { get; set; } = new();
     }
 

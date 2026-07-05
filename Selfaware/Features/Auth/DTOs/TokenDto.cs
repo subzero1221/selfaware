@@ -7,7 +7,6 @@ namespace Selfaware.Features.Auth.DTOs
         [Required]
         public string AccessToken { get; set; } = string.Empty;
 
-       
         public string RefreshToken { get; set; } = string.Empty;
     }
 }

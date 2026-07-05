@@ -4,15 +4,8 @@ namespace Selfaware.Features.Quizzes.DTOs
 {
     namespace Selfaware.Features.Quizzes.DTOs
     {
-   
-        public record GetQuizzesDto(
-            int TotalCount,
-            List<QuizSummaryDto>? Quizzes = null
-        );
+        public record GetQuizzesDto(int TotalCount, List<QuizSummaryDto>? Quizzes = null);
 
-
-
-       
         public record QuizDetailsDto(
             Guid Id,
             int TimeLimit,
@@ -23,7 +16,6 @@ namespace Selfaware.Features.Quizzes.DTOs
             List<QuestionDto>? Questions = null
         );
 
-       
         public record QuizSummaryDto(
             Guid Id,
             int QuestionCount,
@@ -32,8 +24,7 @@ namespace Selfaware.Features.Quizzes.DTOs
             string? Slug = null,
             string? Description = null,
             string? QuizType = null,
-            string? CreatedById = null 
+            string? CreatedById = null
         );
     }
-
 }

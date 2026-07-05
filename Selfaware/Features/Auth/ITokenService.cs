@@ -1,5 +1,6 @@
-﻿using Selfaware.Features.User.Entities;
-using System.Security.Claims;
+﻿using System.Security.Claims;
+using Selfaware.Features.User.Entities;
+
 namespace Selfaware.Features.Auth
 {
     public interface ITokenService

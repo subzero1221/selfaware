@@ -6,14 +6,10 @@ using Selfaware.Features.Quizzes.Parsers;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Models;
 
-
-
 namespace Selfaware.Features.Quizzes
 {
     public class QuizService : IQuizService
     {
-
-
         private readonly AppDbContext _context;
         private readonly IQuizCsvParser _csvParser;
 
@@ -25,9 +21,9 @@ namespace Selfaware.Features.Quizzes
 
         public async Task<ServiceResult<QuizDto>> CreateQuizAsync(CreateQuizDto dto)
         {
-
             bool exists = await _context.Quizzes.AnyAsync(q => q.Title == dto.Title);
-            if (exists) return ServiceResult<QuizDto>.Failed("A quiz with this title already exists.");
+            if (exists)
+                return ServiceResult<QuizDto>.Failed("A quiz with this title already exists.");
 
             var quiz = new Quiz
             {
@@ -36,45 +32,55 @@ namespace Selfaware.Features.Quizzes
                 Description = dto.Description,
                 QuestionCount = dto.Questions.Count,
                 TimeLimit = dto.TimeLimitInMinutes,
-                Questions = dto.Questions.Select((question, index) => new Question
-                {
-                    Id = Guid.NewGuid(),
-                    Text = question.Text,
-                    Type = question.QuestionType,
-                    Order = index + 1,
-                    Options = question.Options.Select((o, index) => new Option
-                    {
-                        Text = o.Text,
-                        Score = o.Score
-                    }).ToList()
-
-                }).ToList()
+                Questions = dto
+                    .Questions.Select(
+                        (question, index) =>
+                            new Question
+                            {
+                                Id = Guid.NewGuid(),
+                                Text = question.Text,
+                                Type = question.QuestionType,
+                                Order = index + 1,
+                                Options = question
+                                    .Options.Select(
+                                        (o, index) => new Option { Text = o.Text, Score = o.Score }
+                                    )
+                                    .ToList(),
+                            }
+                    )
+                    .ToList(),
             };
 
             _context.Quizzes.Add(quiz);
             await _context.SaveChangesAsync();
 
-            return ServiceResult<QuizDto>.Ok(new QuizDto
-            (
-                QuizId: quiz.Id,
-                Title: quiz.Title,
-                Description: quiz.Description,
-                TimeLimitInMinutes: dto.TimeLimitInMinutes,
-                QuestionCount: quiz.QuestionCount
-            ), "Quiz created successfully");
+            return ServiceResult<QuizDto>.Ok(
+                new QuizDto(
+                    QuizId: quiz.Id,
+                    Title: quiz.Title,
+                    Description: quiz.Description,
+                    TimeLimitInMinutes: dto.TimeLimitInMinutes,
+                    QuestionCount: quiz.QuestionCount
+                ),
+                "Quiz created successfully"
+            );
         }
 
-        public async Task<ServiceResult<Guid>> PutQuizAsync(PutQuizDto dto, Guid quizId, string userId)
+        public async Task<ServiceResult<Guid>> PutQuizAsync(
+            PutQuizDto dto,
+            Guid quizId,
+            string userId
+        )
         {
-            var existingQuiz = await _context.Quizzes.Include(q=>q.Questions)
-            .FirstOrDefaultAsync(q => q.Id == quizId && q.CreatedById == userId);
+            var existingQuiz = await _context
+                .Quizzes.Include(q => q.Questions)
+                .FirstOrDefaultAsync(q => q.Id == quizId && q.CreatedById == userId);
 
             if (existingQuiz == null)
             {
                 return ServiceResult<Guid>.Failed("Quiz not Found or Access Denied");
             }
 
-           
             existingQuiz.Title = dto.Title;
             existingQuiz.Description = dto.Description;
             existingQuiz.Slug = dto.Slug;
@@ -84,30 +90,34 @@ namespace Selfaware.Features.Quizzes
 
             _context.Questions.RemoveRange(existingQuiz.Questions);
 
-            
+            var newQuestions = dto
+                .Questions.Select(
+                    (qDto, Index) =>
+                        new Question
+                        {
+                            Id = Guid.NewGuid(),
+                            QuizId = existingQuiz.Id,
+                            Text = qDto.Text,
+                            Order = Index + 1,
+                            Type = qDto.Type,
+                            Options = qDto
+                                .Options.Select(oDto => new Option
+                                {
+                                    Id = Guid.NewGuid(),
+                                    Text = oDto.Text,
 
-            var newQuestions = dto.Questions.Select((qDto, Index) => new Question
-            {
-                Id = Guid.NewGuid(),
-                QuizId = existingQuiz.Id,
-                Text = qDto.Text,
-                Order = Index + 1,
-                Type = qDto.Type,
-                Options = qDto.Options.Select(oDto => new Option
-                {
-                    Id = Guid.NewGuid(),
-                    Text = oDto.Text,
-
-                    Score = oDto.Score
-                }).ToList()
-            }).ToList();
+                                    Score = oDto.Score,
+                                })
+                                .ToList(),
+                        }
+                )
+                .ToList();
 
             _context.Questions.AddRange(newQuestions);
 
             await _context.SaveChangesAsync();
 
             return ServiceResult<Guid>.Ok(existingQuiz.Id, "Quiz saved succesfully");
-
         }
 
         /* public async Task<ServiceResult<QuizSummaryDto>> BulkImportQuizAsync(string title, int timeLimitInMinutes, Stream fileStream, string Description, string userId)
@@ -162,47 +172,42 @@ namespace Selfaware.Features.Quizzes
              return ServiceResult<QuizSummaryDto>.Ok(data, "Quiz created succesfuly");
          }*/
 
-
         public async Task<ServiceResult<GetQuizzesDto>> GetMyQuizzesAsync(string userId)
         {
-            var quizzes = await _context.Quizzes.AsNoTracking()
-           .Where(q => q.CreatedById == userId)
-            .Select(q => new QuizSummaryDto
-            (
-                Id: q.Id,
-                QuestionCount: q.Questions.Count,
-                QuizStatus: q.QuizStatus,
-                Title: q.Title,
-                Slug: q.Slug,
-                Description: q.Description,
-                QuizType: q.QuizType
+            var quizzes = await _context
+                .Quizzes.AsNoTracking()
+                .Where(q => q.CreatedById == userId)
+                .Select(q => new QuizSummaryDto(
+                    Id: q.Id,
+                    QuestionCount: q.Questions.Count,
+                    QuizStatus: q.QuizStatus,
+                    Title: q.Title,
+                    Slug: q.Slug,
+                    Description: q.Description,
+                    QuizType: q.QuizType
+                ))
+                .ToListAsync();
 
-            )).ToListAsync();
-
-            var quizzesResult = new GetQuizzesDto
-            (
-                Quizzes: quizzes,
-                TotalCount: quizzes.Count
-            );
+            var quizzesResult = new GetQuizzesDto(Quizzes: quizzes, TotalCount: quizzes.Count);
 
             return ServiceResult<GetQuizzesDto>.Ok(quizzesResult, "Quizzes success");
         }
-        public async Task<ServiceResult<QuizDetailsDto>> GetSingleQuizAsync(Guid quizId, string userId)
-        {
 
-            var quizEntity = await _context.Quizzes
-                .AsNoTracking()
+        public async Task<ServiceResult<QuizDetailsDto>> GetSingleQuizAsync(
+            Guid quizId,
+            string userId
+        )
+        {
+            var quizEntity = await _context
+                .Quizzes.AsNoTracking()
                 .Include(q => q.Questions)
                     .ThenInclude(question => question.Options)
                 .FirstOrDefaultAsync(q => q.Id == quizId && q.CreatedById == userId);
 
-
             if (quizEntity == null)
             {
-
                 return ServiceResult<QuizDetailsDto>.Failed("Quiz not found");
             }
-
 
             var quizDto = new QuizDetailsDto(
                 Id: quizEntity.Id,
@@ -211,33 +216,37 @@ namespace Selfaware.Features.Quizzes
                 Title: quizEntity.Title,
                 Description: quizEntity.Description,
                 Slug: quizEntity.Slug,
-                Questions: quizEntity.Questions.Select(question => new QuestionDto(
-                    Id: question.Id,
-                    Text: question.Text,
-                    Type: question.Type,
-                    Order: question.Order,
-                    Options: question.Options.Select(option => new OptionDto(
-                        Id: option.Id,
-                        Text: option.Text,
-                        Score: option.Score
-                    )).ToList()
-                )).ToList()
+                Questions: quizEntity
+                    .Questions.Select(question => new QuestionDto(
+                        Id: question.Id,
+                        Text: question.Text,
+                        Type: question.Type,
+                        Order: question.Order,
+                        Options: question
+                            .Options.Select(option => new OptionDto(
+                                Id: option.Id,
+                                Text: option.Text,
+                                Score: option.Score
+                            ))
+                            .ToList()
+                    ))
+                    .ToList()
             );
 
             return ServiceResult<QuizDetailsDto>.Ok(quizDto, "Quiz fetched succesfully");
-
         }
 
         public async Task<ServiceResult<Guid>> DeleteQuizAsync(Guid quizId, string userId)
         {
-            var affectedRows = await _context.Quizzes
-        .Where(quiz => quiz.Id == quizId && quiz.CreatedById == userId)
-        .ExecuteDeleteAsync();
-
+            var affectedRows = await _context
+                .Quizzes.Where(quiz => quiz.Id == quizId && quiz.CreatedById == userId)
+                .ExecuteDeleteAsync();
 
             if (affectedRows == 0)
             {
-                return ServiceResult<Guid>.Failed("Quiz not found or you don't have permission to delete it.");
+                return ServiceResult<Guid>.Failed(
+                    "Quiz not found or you don't have permission to delete it."
+                );
             }
 
             return ServiceResult<Guid>.Ok(quizId, "Quiz Deleted succesfully");
