@@ -1,6 +1,5 @@
 ﻿using Selfaware.Features.Game.GameSession.DTOs;
 using Selfaware.Features.Game.Lobby.DTOs;
-using Selfaware.Shared.Models;
 using StackExchange.Redis;
 using System.Text.Json;
 
@@ -92,6 +91,7 @@ namespace Selfaware.Features.Game.RedisRepos
         {
             string serializedPlayer = JsonSerializer.Serialize(updatedPlayer);
             await _redis.HashSetAsync(PlayersKey(joinCode), playerId, serializedPlayer);
+            await _redis.KeyExpireAsync(PlayersKey(joinCode), TimeSpan.FromHours(1));
             return "player set";
         }
 

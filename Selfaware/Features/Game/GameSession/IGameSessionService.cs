@@ -33,5 +33,6 @@ namespace Selfaware.Features.Game.GameSession
 
         //HttpReqs
         public Task<ServiceResult<GameDto>> GetGameAsync(string joinCode, string playerId);
+        public Task<ServiceResult<GameDto>> GetGameForHostAsync(string joinCode);
     }
 }

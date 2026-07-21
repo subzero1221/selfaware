@@ -30,5 +30,20 @@ namespace Selfaware.Features.Game.GameSession
 
             return Ok(CustomResponse<GameDto>.SuccessResponse(result.Data, result.Message));
         }
+
+        [HttpGet("{joinCode}")]
+        public async Task<ActionResult> GetGameForHost(
+           [FromRoute] string joinCode
+       )
+        {
+            var result = await _gameSessionService.GetGameForHostAsync(joinCode);
+
+            if (!result.Success)
+            {
+                return BadRequest(CustomResponse<string>.ErrorResponse(result.Message));
+            }
+
+            return Ok(CustomResponse<GameDto>.SuccessResponse(result.Data, result.Message));
+        }
     }
 }

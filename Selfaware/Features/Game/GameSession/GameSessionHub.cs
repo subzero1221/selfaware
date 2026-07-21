@@ -92,9 +92,18 @@ namespace Selfaware.Features.Game.GameSession
             if (!result.Success)
             {
                 await Clients.Group(joinCode).SendAsync("NextQuestionFail", result.Message);
+                return;
             }
 
             await Clients.Group(joinCode).SendAsync("NextQuestion", result.Data);
+        }
+    
+        public async Task JoinGameSession(string joinCode)
+        {
+            if (!string.IsNullOrWhiteSpace(joinCode))
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, joinCode);
+            }
         }
     }
 }

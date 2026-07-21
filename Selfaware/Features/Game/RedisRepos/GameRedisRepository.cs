@@ -81,6 +81,8 @@ namespace Selfaware.Features.Game.RedisRepos
             };
 
             await _redis.HashSetAsync(GameKey(joinCode), gameData);
+            await _redis.KeyExpireAsync(GameKey(joinCode), TimeSpan.FromHours(1));
+           
         }
 
         public async Task SaveGameMetaAsync(string joinCode, IEnumerable<HashEntry> updates)

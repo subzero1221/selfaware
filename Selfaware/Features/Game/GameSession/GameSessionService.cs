@@ -165,7 +165,8 @@ namespace Selfaware.Features.Game.GameSession
                 Players: gamePlayerList,
                 State: SessionState.Answering,
                 TotalQuestions: TotalQuestionCount,
-                TimeLimitSeconds: 10
+                TimeLimitSeconds: 10,
+                 TimeLeft: 10
             );
 
             Console.WriteLine($"Enter Game Service{newGame} quizid");
@@ -208,7 +209,10 @@ namespace Selfaware.Features.Game.GameSession
                 QuizId: quizId,
                 CurrentQuestionIndex: currentIndex,
                 Players: playerList,
-                State: SessionState.ShowingLeaderBoard
+                State: SessionState.ShowingLeaderBoard,
+                 TotalQuestions: null,
+                TimeLimitSeconds: 10,
+                 TimeLeft: 10
             );
 
             return ServiceResult<GameDto>.Ok(game, "Leaderboard return success");
@@ -299,7 +303,7 @@ namespace Selfaware.Features.Game.GameSession
                 Players: updatedPlayerList,
                 State: SessionState.Answering,
                 TotalQuestions: totalQuestionCount,
-                TimeLimitSeconds: 30,
+                TimeLimitSeconds: 10,
                 TimeLeft: 10
             );
 
@@ -350,7 +354,7 @@ namespace Selfaware.Features.Game.GameSession
                 int newScore = GameCalculator.CalculateScore(
                     timeLeftSeconds,
                     player.Score,
-                    player.Streak
+                    player.Streak+1
                 );
                 updatedPlayer = new GamePlayerDto(
                     PlayerId: player.PlayerId,
@@ -418,7 +422,64 @@ namespace Selfaware.Features.Game.GameSession
                 Players: playerList,
                 State: sessionState,
                 TotalQuestions: totalQuestionCount,
-                TimeLimitSeconds: 30,
+                TimeLimitSeconds: 10,
+                TimeLeft: timeLeftSeconds
+            );
+
+            return ServiceResult<GameDto>.Ok(newGame, "Game found successfully");
+        }
+
+        public async Task<ServiceResult<GameDto>> GetGameForHostAsync(string joinCode)
+        {
+
+            var gameMeta = await _gameRepo.GetGameMetaAsync(joinCode);
+            var playerList = await _gamePlayerRepo.GetGamePlayersAsync(joinCode);
+
+
+
+            Guid gameId = Guid.Parse(gameMeta["Id"]);
+            Guid quizId = Guid.Parse(gameMeta["QuizId"]);
+            int currentIndex = int.Parse(gameMeta["CurrentQuestionIndex"]);
+            int totalQuestionCount = int.Parse(gameMeta["TotalQuestionCount"]);
+            string stateString = gameMeta["State"];
+
+            long expiresAtUnix =
+                stateString == "Answering"
+                    ? long.Parse(gameMeta["QuestionTimeExpiresAt"])
+                    : long.Parse(gameMeta["leaderBoardTimeLeft"]);
+
+            long currentTimeUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long difference = expiresAtUnix - currentTimeUnix;
+            int timeLeftSeconds = Math.Max(0, (int)difference);
+
+            SessionState sessionState = Enum.Parse<SessionState>(stateString);
+
+            string questionJson = gameMeta["CurrentQuestion"];
+            var activeQuestion = JsonSerializer.Deserialize<ActiveQuestionDto>(questionJson);
+
+            if (activeQuestion == null)
+            {
+                return ServiceResult<GameDto>.Failed("Active question not found");
+            }
+
+            var newGame = new GameDto(
+                Id: gameId,
+                QuizId: quizId,
+                CurrentQuestion: new ActiveQuestionDto(
+                    Id: activeQuestion.Id,
+                    Text: activeQuestion.Text,
+                    Options: activeQuestion
+                        .Options.Select(option => new ActiveOptionDto(
+                            Id: option.Id,
+                            Text: option.Text
+                        ))
+                        .ToList()
+                ),
+                CurrentQuestionIndex: currentIndex,
+                Players: playerList,
+                State: sessionState,
+                TotalQuestions: totalQuestionCount,
+                TimeLimitSeconds: 10,
                 TimeLeft: timeLeftSeconds
             );
 
