@@ -5,9 +5,9 @@ namespace Selfaware.Features.Game.GameSession.DTOs
     public record GameDto(
         Guid Id,
         Guid QuizId,
-        int CurrentQuestionIndex,
         ICollection<GamePlayerDto> Players,
         SessionState State,
+        int? CurrentQuestionIndex = null,
         ActiveQuestionDto? CurrentQuestion = null,
         int? TotalQuestions = null,
         int? TimeLimitSeconds = null,

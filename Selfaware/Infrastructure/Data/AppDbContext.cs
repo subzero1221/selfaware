@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Selfaware.Features.Game.GameSession.Entities;
 using Selfaware.Features.Quizzes.Entities;
 using Selfaware.Features.User.Entities;
 
@@ -13,6 +14,10 @@ namespace Selfaware.Infrastructure.Data
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<UserSubmission> UserSubmissions { get; set; }
+
+        public DbSet<GameSessionEntity> GameSessionEntities { get; set; }
+
+        public DbSet<Player> Players { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

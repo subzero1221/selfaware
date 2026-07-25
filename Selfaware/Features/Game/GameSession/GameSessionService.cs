@@ -134,7 +134,9 @@ namespace Selfaware.Features.Game.GameSession
                 expiresAtUnix
             );
 
+
             var gamePlayerList = playersList
+                .Where(player => player.IsReady)
                 .Select(player => new GamePlayerDto(
                     PlayerId: player.Id,
                     NickName: player.NickName,
@@ -248,6 +250,12 @@ namespace Selfaware.Features.Game.GameSession
             int totalQuestionCount = int.Parse(gameMeta["TotalQuestionCount"]);
 
             int nextIndex = currentIndex + 1;
+
+            if(nextIndex == totalQuestionCount)
+            {
+                Console.WriteLine($"Now i will finish the game---------------");
+                return await FinishGameAsync(joinCode);   
+            }
 
             var question = await _context
                 .Questions.Include(question => question.Options)
@@ -371,6 +379,36 @@ namespace Selfaware.Features.Game.GameSession
             return ServiceResult<GamePlayerDto>.Ok(updatedPlayer, "Asnwer submit success");
         }
 
+
+         public async Task<ServiceResult<GameDto>> FinishGameAsync(string joinCode)
+         {
+             var gameMeta = await _gameRepo.GetGameMetaAsync(joinCode);
+             var players = await _gamePlayerRepo.GetGamePlayersAsync(joinCode);
+             Guid gameId = Guid.Parse(gameMeta["Id"]);
+             Guid quizId = Guid.Parse(gameMeta["QuizId"]);
+             Guid hostId = Guid.Parse(gameMeta["HostId"]);
+             DateTime startedAt = DateTime.Parse(gameMeta["StartedAt"]);
+
+            var gameUpdates = new HashEntry[]
+            {
+               new HashEntry("State", SessionState.Finished.ToString()),
+            };
+            await _gameRepo.SaveGameMetaAsync(joinCode, gameUpdates);
+
+
+            var finishGameRes = new GameDto(
+                            Id: gameId,
+                            QuizId: quizId,
+                            Players: players,
+                            State: SessionState.Finished
+                        );
+
+            return ServiceResult<GameDto>.Ok(finishGameRes, "Game finished successfully");
+             
+
+         }
+        
+
         //Http Reqs
         public async Task<ServiceResult<GameDto>> GetGameAsync(string joinCode, string playerId)
         {
@@ -485,5 +523,61 @@ namespace Selfaware.Features.Game.GameSession
 
             return ServiceResult<GameDto>.Ok(newGame, "Game found successfully");
         }
+
+        public async Task<ServiceResult<string>> SaveFinishedGameAsync(string joinCode, string userId)
+        {
+
+            var gameMeta = await _gameRepo.GetGameMetaAsync(joinCode);
+            if (gameMeta == null || !gameMeta.Any())
+            {
+                return ServiceResult<string>.Failed("Game session not found or has expired.");
+            }
+
+
+            if (!gameMeta.TryGetValue("HostId", out var hostId) || hostId != userId)
+            {
+                return ServiceResult<string>.Failed("You are not allowed to perform this action.");
+            }
+
+
+            var players = await _gamePlayerRepo.GetGamePlayersAsync(joinCode);
+
+
+            Guid gameId = Guid.Parse(gameMeta["Id"]);
+            Guid quizId = Guid.Parse(gameMeta["QuizId"]);
+            Guid hostGuid = Guid.Parse(hostId);
+            DateTime startedAt = DateTime.Parse(gameMeta["StartedAt"]).ToUniversalTime();
+
+
+            bool isAlreadySaved = await _context.GameSessionEntities.AnyAsync(g => g.Id == gameId);
+            if (isAlreadySaved)
+            {
+                return ServiceResult<string>.Ok("თამაში უკვე შენახულია.");
+            }
+
+            var savedGame = new GameSessionEntity
+            {
+                Id = gameId,
+                HostId = hostGuid,
+                StrtedAt = startedAt,
+                State = SessionState.Finished,
+                Players = players.Select(player => new Player
+                {
+                    PlayerId = player.PlayerId,
+                    NickName = player.NickName,
+                    Score = player.Score,
+                }).ToList()
+            };
+
+
+
+         
+            _context.GameSessionEntities.Add(savedGame);
+            await _context.SaveChangesAsync();
+
+            return ServiceResult<string>.Ok("Game saved successfully.");
+        }
+
+
     }
 }

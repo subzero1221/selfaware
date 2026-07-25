@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Selfaware.Features.Game.GameSession.DTOs;
 using Selfaware.Shared.Models;
+using System.Security.Claims;
 
 namespace Selfaware.Features.Game.GameSession
 {
@@ -45,5 +47,20 @@ namespace Selfaware.Features.Game.GameSession
 
             return Ok(CustomResponse<GameDto>.SuccessResponse(result.Data, result.Message));
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{joinCode}")]
+        public async Task<ActionResult> SaveFinishedGame([FromRoute] string joinCode)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(
+                    CustomResponse<Guid>.ErrorResponse("Your have no permission for this action")
+                );
+            var result = await _gameSessionService.SaveFinishedGameAsync(joinCode, userId);
+
+            return Ok(CustomResponse<string>.SuccessResponse(result.Message));
+        }           
+
     }
 }

@@ -73,6 +73,7 @@ namespace Selfaware.Features.Game.RedisRepos
                 new HashEntry("HostId", hostId),
                 new HashEntry("State", SessionState.Answering.ToString()),
                 new HashEntry("CurrentQuestionIndex", "0"),
+                new HashEntry("StartedAt", DateTime.Now.ToString()),
                 new HashEntry("TotalQuestionCount", totalQuestions.ToString()),
                 new HashEntry("CurrentQuestionId", initialQuestion.Id.ToString()),
                 new HashEntry("CorrectOptionId", correctOptionId.ToString()),

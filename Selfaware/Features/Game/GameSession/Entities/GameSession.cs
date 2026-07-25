@@ -7,15 +7,31 @@
         Finished = 2,
     }
 
-    public class GameSession
+    public class GameSessionEntity
     {
         public Guid Id { get; set; }
         public SessionState State { get; set; }
 
-        public string HostId { get; set; } = string.Empty;
+        public Guid HostId { get; set; }
 
         public DateTime StrtedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<Player> Players { get; set; } = new List<Player>();
+    }
+
+    public enum PlayerState
+    {
+        Answering = 0,
+        Answered = 1,
+        Disconnected = 2,
+    }
+
+    public class Player
+    {
+        public Guid PlayerId { get; set; }
+        public string NickName { get; set; } = string.Empty;
+
+        public int Score { get; set; }
+
     }
 }

@@ -31,8 +31,12 @@ namespace Selfaware.Features.Game.GameSession
         );
         public Task<ServiceResult<GamePlayerDto>> SubmitAnswerAsync(SubmitAnswerDto dto);
 
+        public Task<ServiceResult<GameDto>> FinishGameAsync(string joinCode); 
+
         //HttpReqs
         public Task<ServiceResult<GameDto>> GetGameAsync(string joinCode, string playerId);
         public Task<ServiceResult<GameDto>> GetGameForHostAsync(string joinCode);
+
+        public Task<ServiceResult<string>> SaveFinishedGameAsync(string joinCode, string userId);
     }
 }
