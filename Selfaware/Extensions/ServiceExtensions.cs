@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using System.Text;
-using FluentValidation;
+﻿using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -17,9 +15,12 @@ using Selfaware.Features.User.Entities;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Infrastructure.Messaging;
 using Selfaware.Shared.AI;
+using Selfaware.Shared.Cloudinary;
 using Selfaware.Shared.DocumentExtraction;
 using Selfaware.Shared.Models;
 using StackExchange.Redis;
+using System.Security.Claims;
+using System.Text;
 
 namespace Selfaware.Extensions
 {
@@ -130,6 +131,7 @@ namespace Selfaware.Extensions
             services.Configure<EmailSettings>(config.GetSection("EmailSettings"));
             services.Configure<GeminiSettings>(config.GetSection("GeminiSettings"));
             services.Configure<GPTSettings>(config.GetSection("GPTSettings"));
+            services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
 
             //server helper tools
 
@@ -164,6 +166,8 @@ namespace Selfaware.Extensions
             services.AddSingleton<IConnectionMultiplexer>(sp =>
                 ConnectionMultiplexer.Connect("127.0.0.1:6379")
             );
+
+            services.AddSingleton<IImageService, CloudinaryClientService>();
 
             return services;
         }

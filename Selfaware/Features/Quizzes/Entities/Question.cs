@@ -10,6 +10,10 @@ namespace Selfaware.Features.Quizzes.Entities
         public Quiz Quiz { get; set; }
 
         public string Text { get; set; } = string.Empty;
+
+        public string? ImageUrl { get; set; }
+
+        public string? ImagePublicId { get; set; }
         public int Order { get; set; }
 
         public QuestionType Type { get; set; } = QuestionType.SingleChoice;
@@ -24,4 +28,16 @@ namespace Selfaware.Features.Quizzes.Entities
         public string Text { get; set; } = string.Empty;
         public int Score { get; set; }
     }
+}
+
+
+namespace Selfaware.Features.Quizzes.Enums
+{
+    public enum QuestionType
+    {
+        SingleChoice = 0,
+        MultipleChoice = 1,
+        PsychologicalScale = 2,
+    }
+
 }

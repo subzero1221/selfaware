@@ -14,7 +14,9 @@ namespace Selfaware.Features.Quizzes.DTOs
         string Text,
         List<OptionDto> Options,
         int Order,
-        QuestionType QuestionType
+        QuestionType QuestionType,
+        string? ImageUrl = null,
+        string? ImagePublicId = null
     );
 
     public record PutQuizDto(
@@ -26,7 +28,9 @@ namespace Selfaware.Features.Quizzes.DTOs
         int QuestionCount,
         QuizStatus QuizStatus,
         string QuizType,
-        List<QuestionDto> Questions
+        List<QuestionDto> Questions,
+        string? ImageUrl = null,
+        string? ImagePublicId = null
     );
 
     public record BulkQuizUpload(

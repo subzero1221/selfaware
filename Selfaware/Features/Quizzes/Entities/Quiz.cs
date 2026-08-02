@@ -1,4 +1,4 @@
-﻿using Selfaware.Features.Quizzes.Enums;
+﻿
 using Selfaware.Features.User.Entities;
 
 namespace Selfaware.Features.Quizzes.Entities
@@ -21,4 +21,10 @@ namespace Selfaware.Features.Quizzes.Entities
         public string CreatedById { get; set; } = string.Empty;
         public ApplicationUser CreatedBy { get; set; } = null!;
     }
+}
+
+public enum QuizStatus
+{
+    draft = 0,
+    approved = 1,
 }

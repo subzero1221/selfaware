@@ -1,5 +1,4 @@
 ﻿using Selfaware.Features.Quizzes.DTOs;
-using Selfaware.Features.Quizzes.DTOs.Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Quizzes.Entities;
 using Selfaware.Features.Quizzes.Enums;
 using Selfaware.Features.Quizzes.Static.Selfaware.Features.Quizzes;

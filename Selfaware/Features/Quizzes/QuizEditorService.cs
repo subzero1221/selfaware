@@ -90,6 +90,8 @@ namespace Selfaware.Features.Quizzes
                     existingOpt.Score = dtoOpt.Score;
                 }
             }
+            question.ImageUrl = dto.ImageUrl;
+            question.ImagePublicId = dto.ImagePublicId;
 
             await _context.SaveChangesAsync();
 

@@ -7,7 +7,9 @@ namespace Selfaware.Features.Quizzes.DTOs
         string Text,
         QuestionType Type,
         int Order,
-        List<OptionDto> Options
+        List<OptionDto> Options,
+        string? ImageUrl = null,
+        string? ImagePublicId = null
     );
 
     public record ParsedQuestionDto(string Text, List<OptionDto> Options);

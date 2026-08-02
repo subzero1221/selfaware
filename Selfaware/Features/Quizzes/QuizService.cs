@@ -46,7 +46,12 @@ namespace Selfaware.Features.Quizzes
                                         (o, index) => new Option { Text = o.Text, Score = o.Score }
                                     )
                                     .ToList(),
+
+                                ImageUrl = question.ImageUrl,
+                                ImagePublicId = question.ImagePublicId,
                             }
+
+
                     )
                     .ToList(),
             };
@@ -109,6 +114,8 @@ namespace Selfaware.Features.Quizzes
                                     Score = oDto.Score,
                                 })
                                 .ToList(),
+                            ImageUrl = qDto.ImageUrl,
+                            ImagePublicId = qDto.ImagePublicId,
                         }
                 )
                 .ToList();
@@ -228,7 +235,9 @@ namespace Selfaware.Features.Quizzes
                                 Text: option.Text,
                                 Score: option.Score
                             ))
-                            .ToList()
+                            .ToList(),
+                        ImageUrl:question.ImageUrl,
+                        ImagePublicId:question.ImagePublicId
                     ))
                     .ToList()
             );
