@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Selfaware.Features.Quizzes.DTOs;
-using Selfaware.Features.Quizzes.Entities;
 using Selfaware.Features.Quizzes.Enums;
 using Selfaware.Infrastructure.Data;
+using Selfaware.Shared.Cloudinary;
 using Selfaware.Shared.Models;
 
 namespace Selfaware.Features.Quizzes
@@ -10,10 +10,13 @@ namespace Selfaware.Features.Quizzes
     public class QuizEditorService : IQuizEditorService
     {
         public readonly AppDbContext _context;
+        public readonly IImageService _cloudinaryService;
 
-        public QuizEditorService(AppDbContext context)
+        public QuizEditorService(AppDbContext context, IImageService cloudinaryService)
         {
             _context = context;
+            _cloudinaryService = cloudinaryService;
+
         }
 
         public async Task<ServiceResult<Guid>> EditSettingsAsync(
@@ -79,6 +82,13 @@ namespace Selfaware.Features.Quizzes
                 return ServiceResult<Guid>.Failed("Question not found or access denied");
             }
 
+            string? currentImagePublicId = question.ImagePublicId;
+            if(!string.IsNullOrWhiteSpace(currentImagePublicId) && currentImagePublicId != dto.ImagePublicId)
+            {
+                await _cloudinaryService.DeleteImageAsync(currentImagePublicId);
+
+            }
+
             question.Text = dto.Text;
             foreach (var dtoOpt in dto.Options)
             {
@@ -93,9 +103,13 @@ namespace Selfaware.Features.Quizzes
             question.ImageUrl = dto.ImageUrl;
             question.ImagePublicId = dto.ImagePublicId;
 
+            
+
             await _context.SaveChangesAsync();
 
-            return ServiceResult<Guid>.Ok(questionId, "Question update success");
+            
+
+                return ServiceResult<Guid>.Ok(questionId, "Question update success");
         }
 
         public async Task<ServiceResult<Guid>> DeleteQuestionAsync(
@@ -104,18 +118,29 @@ namespace Selfaware.Features.Quizzes
             string userId
         )
         {
-            var deletedCount = await _context
-                .Questions.Where(question =>
-                    question.Id == questionId
-                    && question.QuizId == quizId
-                    && question.Quiz.CreatedById == userId
-                )
-                .ExecuteDeleteAsync();
+            var question = await _context.Questions
+                 .Include(q => q.Quiz)
+                   .FirstOrDefaultAsync(q =>
+                     q.Id == questionId
+                     && q.QuizId == quizId
+                     && q.Quiz.CreatedById == userId
+                               );
 
-            if (deletedCount == 0)
+            if (question == null)
             {
                 return ServiceResult<Guid>.Failed("Question not found or access denied");
             }
+
+           
+            if (!string.IsNullOrEmpty(question.ImagePublicId))
+            {
+               
+                await _cloudinaryService.DeleteImageAsync(question.ImagePublicId);
+            }
+
+            _context.Questions.Remove(question);
+            await _context.SaveChangesAsync();
+
 
             return ServiceResult<Guid>.Ok(questionId, "Question delete success");
         }

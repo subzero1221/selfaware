@@ -1,12 +1,13 @@
-﻿using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Selfaware.Features.Game.GameSession.DTOs;
 using Selfaware.Features.Game.GameSession.Entities;
 using Selfaware.Features.Game.GameSession.Helpers;
 using Selfaware.Features.Game.RedisRepos;
+using Selfaware.Features.Quizzes.Entities;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Models;
 using StackExchange.Redis;
+using System.Text.Json;
 
 namespace Selfaware.Features.Game.GameSession
 {
@@ -161,8 +162,10 @@ namespace Selfaware.Features.Game.GameSession
                             Id: option.Id,
                             Text: option.Text
                         ))
-                        .ToList()
-                ),
+                        .ToList(),
+                QuestionImageUrl: question.ImageUrl
+                        ),
+                
                 CurrentQuestionIndex: 0,
                 Players: gamePlayerList,
                 State: SessionState.Answering,
@@ -277,7 +280,8 @@ namespace Selfaware.Features.Game.GameSession
                 Text: question.Text,
                 Options: question
                     .Options.Select(option => new ActiveOptionDto(option.Id, option.Text))
-                    .ToList()
+                    .ToList(),
+                QuestionImageUrl:question.ImageUrl
             );
 
             var correctOption = question.Options.FirstOrDefault(option => option.Score == 1);
@@ -305,7 +309,8 @@ namespace Selfaware.Features.Game.GameSession
                             Id: option.Id,
                             Text: option.Text
                         ))
-                        .ToList()
+                        .ToList(),
+                     QuestionImageUrl: question.ImageUrl
                 ),
                 CurrentQuestionIndex: nextIndex,
                 Players: updatedPlayerList,
@@ -454,7 +459,8 @@ namespace Selfaware.Features.Game.GameSession
                             Id: option.Id,
                             Text: option.Text
                         ))
-                        .ToList()
+                        .ToList(),
+                     QuestionImageUrl: activeQuestion.QuestionImageUrl
                 ),
                 CurrentQuestionIndex: currentIndex,
                 Players: playerList,
@@ -511,7 +517,8 @@ namespace Selfaware.Features.Game.GameSession
                             Id: option.Id,
                             Text: option.Text
                         ))
-                        .ToList()
+                        .ToList(),
+                     QuestionImageUrl: activeQuestion.QuestionImageUrl
                 ),
                 CurrentQuestionIndex: currentIndex,
                 Players: playerList,

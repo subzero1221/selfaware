@@ -14,7 +14,7 @@ namespace Selfaware.Features.Game.GameSession.DTOs
         int? TimeLeft = null
     );
 
-    public record ActiveQuestionDto(Guid Id, string Text, ICollection<ActiveOptionDto> Options);
+    public record ActiveQuestionDto(Guid Id, string Text, ICollection<ActiveOptionDto> Options, string? QuestionImageUrl = null);
 
     public record ActiveOptionDto(Guid Id, string Text);
 
