@@ -10,6 +10,7 @@ using Selfaware.Features.Game.Lobby;
 using Selfaware.Features.Game.RedisRepos;
 using Selfaware.Features.Quizzes;
 using Selfaware.Features.Quizzes.Parsers;
+using Selfaware.Features.Survey;
 using Selfaware.Features.User;
 using Selfaware.Features.User.Entities;
 using Selfaware.Infrastructure.Data;
@@ -151,6 +152,7 @@ namespace Selfaware.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ILobbyService, LobbyService>();
             services.AddScoped<IGameSessionService, GameSessionService>();
+            services.AddScoped<ISurveyService, SurveyService>();
 
 
             //Internal toolebi gaakete saqme da daibride

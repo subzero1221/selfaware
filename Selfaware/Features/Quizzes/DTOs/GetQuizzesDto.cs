@@ -10,6 +10,7 @@ namespace Selfaware.Features.Quizzes.DTOs
             Guid Id,
             int TimeLimit,
             QuizStatus QuizStatus,
+            QuizType QuizType,
             string? Title = null,
             string? Description = null,
             string? Slug = null,
@@ -20,10 +21,10 @@ namespace Selfaware.Features.Quizzes.DTOs
             Guid Id,
             int QuestionCount,
             QuizStatus QuizStatus,
+            QuizType QuizType,
             string? Title = null,
             string? Slug = null,
             string? Description = null,
-            string? QuizType = null,
             string? CreatedById = null
         );
     }

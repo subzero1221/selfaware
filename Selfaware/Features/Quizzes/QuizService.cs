@@ -3,6 +3,7 @@ using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Quizzes.DTOs.Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Quizzes.Entities;
 using Selfaware.Features.Quizzes.Parsers;
+using Selfaware.Features.Survey.DTOs;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Models;
 
@@ -65,6 +66,7 @@ namespace Selfaware.Features.Quizzes
                     Title: quiz.Title,
                     Description: quiz.Description,
                     TimeLimitInMinutes: dto.TimeLimitInMinutes,
+                    QuizType:dto.QuizType,
                     QuestionCount: quiz.QuestionCount
                 ),
                 "Quiz created successfully"
@@ -188,10 +190,10 @@ namespace Selfaware.Features.Quizzes
                     Id: q.Id,
                     QuestionCount: q.Questions.Count,
                     QuizStatus: q.QuizStatus,
+                    QuizType:q.QuizType,
                     Title: q.Title,
                     Slug: q.Slug,
-                    Description: q.Description,
-                    QuizType: q.QuizType
+                    Description: q.Description
                 ))
                 .ToListAsync();
 
@@ -220,6 +222,7 @@ namespace Selfaware.Features.Quizzes
                 Id: quizEntity.Id,
                 TimeLimit: quizEntity.TimeLimit,
                 QuizStatus: quizEntity.QuizStatus,
+                QuizType:quizEntity.QuizType,
                 Title: quizEntity.Title,
                 Description: quizEntity.Description,
                 Slug: quizEntity.Slug,
@@ -259,6 +262,51 @@ namespace Selfaware.Features.Quizzes
             }
 
             return ServiceResult<Guid>.Ok(quizId, "Quiz Deleted succesfully");
+        }
+
+        public async Task<ServiceResult<QuizForSurveyDto>> GetQuizForSurvey(Guid quizId)
+        {
+
+         var quizEntity = await _context
+        .Quizzes.AsNoTracking()
+        .Include(q => q.Questions)
+            .ThenInclude(question => question.Options)
+        .FirstOrDefaultAsync(q => q.Id == quizId && q.QuizType == QuizType.Survey);
+
+            if (quizEntity == null)
+            {
+                return ServiceResult<QuizForSurveyDto>.Failed("Survey not found or is not active");
+            }
+
+
+
+            var quizForSurvey = new QuizForSurveyDto(
+                QuizId: quizEntity.Id,
+                QuizStatus: quizEntity.QuizStatus,
+                QuizType: quizEntity.QuizType,
+                Title: quizEntity.Title,
+                Description: quizEntity.Description,
+                QuestionCount: quizEntity.Questions.Count,
+                Questions: quizEntity
+                    .Questions.Select(question => new QuestionDto(
+                        Id: question.Id,
+                        Text: question.Text,
+                        Type: question.Type,
+                        Order: question.Order,
+                        Options: question
+                            .Options.Select(option => new OptionDto(
+                                Id: option.Id,
+                                Text: option.Text,
+                                Score: option.Score
+                            ))
+                            .ToList(),
+                        ImageUrl: question.ImageUrl,
+                        ImagePublicId: question.ImagePublicId
+                    ))
+                    .ToList()
+            );
+
+            return ServiceResult<QuizForSurveyDto>.Ok(quizForSurvey, "Quiz for survey fetched succesfully");
         }
     }
 }

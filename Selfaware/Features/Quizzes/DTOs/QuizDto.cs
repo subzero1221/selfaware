@@ -8,6 +8,7 @@ namespace Selfaware.Features.Quizzes.DTOs
         string Description,
         int QuestionCount,
         int TimeLimitInMinutes,
+        QuizType QuizType,
         string? Title = null
     );
 

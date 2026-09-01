@@ -7,7 +7,8 @@ namespace Selfaware.Features.Quizzes.DTOs
         string Description,
         List<CreateQuestionDto> Questions,
         int TimeLimitInMinutes,
-        int QuestionCount
+        int QuestionCount, 
+        QuizType QuizType
     );
 
     public record CreateQuestionDto(
@@ -44,4 +45,11 @@ namespace Selfaware.Features.Quizzes.DTOs
     {
         public IFormFile? File { get; set; }
     };
+
+    //enums
+    public enum QuizType
+    {
+        Knowledge = 0,
+        Survey = 1,
+    }
 }
