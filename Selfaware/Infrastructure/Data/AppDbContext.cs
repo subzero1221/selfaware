@@ -27,6 +27,10 @@ namespace Selfaware.Infrastructure.Data
                 .Entity<UserSubmission>()
                 .Property(b => b.RawAnswersJson)
                 .HasColumnType("jsonb");
+
+            modelBuilder.Entity<Quiz>()
+    .Property(q => q.QuizType)
+    .HasConversion<string>();
         }
 
         public override Task<int> SaveChangesAsync(

@@ -77,12 +77,12 @@ namespace Selfaware.Features.Quizzes
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<ActionResult> GetMyQuizzesAsync()
+        public async Task<ActionResult> GetMyQuizzesAsync([FromRoute] QuizType? quizType )
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
-            var result = await _quizService.GetMyQuizzesAsync(userId);
+            var result = await _quizService.GetMyQuizzesAsync(userId, quizType);
 
             if (result == null)
             {

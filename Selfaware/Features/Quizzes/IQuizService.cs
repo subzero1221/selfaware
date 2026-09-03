@@ -10,7 +10,7 @@ namespace Selfaware.Features.Quizzes
         Task<ServiceResult<QuizDto>> CreateQuizAsync(CreateQuizDto model);
 
         // Task<ServiceResult<QuizSummaryDto>> BulkImportQuizAsync(string title, int timeLimitInMinutes, Stream fileStream, string Description, string userId);
-        Task<ServiceResult<GetQuizzesDto>> GetMyQuizzesAsync(string userId);
+        Task<ServiceResult<GetQuizzesDto>> GetMyQuizzesAsync(string userId, QuizType? quizType);
         Task<ServiceResult<QuizForSurveyDto>> GetQuizForSurvey(Guid quizId);
 
         Task<ServiceResult<Guid>> PutQuizAsync(PutQuizDto dto, Guid quizId, string userId);

@@ -181,16 +181,23 @@ namespace Selfaware.Features.Quizzes
              return ServiceResult<QuizSummaryDto>.Ok(data, "Quiz created succesfuly");
          }*/
 
-        public async Task<ServiceResult<GetQuizzesDto>> GetMyQuizzesAsync(string userId)
+        public async Task<ServiceResult<GetQuizzesDto>> GetMyQuizzesAsync(string userId, QuizType? quizType)
         {
-            var quizzes = await _context
-                .Quizzes.AsNoTracking()
-                .Where(q => q.CreatedById == userId)
+            var query = _context.Quizzes
+                    .AsNoTracking()
+                    .Where(q => q.CreatedById == userId);
+
+            if (quizType.HasValue)
+            {
+                query = query.Where(q => q.QuizType == quizType.Value);
+            }
+
+            var quizzes = await query
                 .Select(q => new QuizSummaryDto(
                     Id: q.Id,
-                    QuestionCount: q.Questions.Count,
+                    QuestionCount: q.Questions.Count(),
                     QuizStatus: q.QuizStatus,
-                    QuizType:q.QuizType,
+                    QuizType: q.QuizType,
                     Title: q.Title,
                     Slug: q.Slug,
                     Description: q.Description

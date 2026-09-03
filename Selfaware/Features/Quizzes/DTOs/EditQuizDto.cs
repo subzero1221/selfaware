@@ -7,4 +7,14 @@ namespace Selfaware.Features.Quizzes.DTOs
     public record EditQuestionDto(Guid Id, string Text, EditOptionDto[] Options, string? ImageUrl = null, string? ImagePublicId=null);
 
     public record EditOptionDto(Guid Id, string Text, int Score);
+
+   
+        public enum SettingsField
+        {
+            Title = 0,
+            Description = 1,
+            TimeLimit = 2,
+        }
+    
+
 }
