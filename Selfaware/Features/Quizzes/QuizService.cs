@@ -33,6 +33,7 @@ namespace Selfaware.Features.Quizzes
                 Description = dto.Description,
                 QuestionCount = dto.Questions.Count,
                 TimeLimit = dto.TimeLimitInMinutes,
+                QuizType = dto.QuizType,
                 Questions = dto
                     .Questions.Select(
                         (question, index) =>
@@ -94,6 +95,7 @@ namespace Selfaware.Features.Quizzes
             existingQuiz.TimeLimit = dto.TimeLimit;
             existingQuiz.QuizStatus = dto.QuizStatus;
             existingQuiz.QuestionCount = dto.QuestionCount;
+            existingQuiz.QuizType = dto.QuizType;
 
             _context.Questions.RemoveRange(existingQuiz.Questions);
 
@@ -187,9 +189,11 @@ namespace Selfaware.Features.Quizzes
                     .AsNoTracking()
                     .Where(q => q.CreatedById == userId);
 
+            Console.WriteLine($"Quiz tyoe is :{quizType}");
             if (quizType.HasValue)
             {
                 query = query.Where(q => q.QuizType == quizType.Value);
+                Console.WriteLine($"Quiz tyoe is :{quizType}");
             }
 
             var quizzes = await query

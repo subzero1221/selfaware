@@ -28,7 +28,7 @@ namespace Selfaware.Features.Quizzes.DTOs
         int TimeLimit,
         int QuestionCount,
         QuizStatus QuizStatus,
-        string QuizType,
+        QuizType QuizType,
         List<QuestionDto> Questions,
         string? ImageUrl = null,
         string? ImagePublicId = null

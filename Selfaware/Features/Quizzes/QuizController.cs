@@ -77,7 +77,7 @@ namespace Selfaware.Features.Quizzes
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<ActionResult> GetMyQuizzesAsync([FromRoute] QuizType? quizType )
+        public async Task<ActionResult> GetMyQuizzesAsync([FromQuery] QuizType? quizType )
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -180,6 +180,7 @@ namespace Selfaware.Features.Quizzes
 
             return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
         }
+
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id:guid}/questions/{questionId:guid}")]

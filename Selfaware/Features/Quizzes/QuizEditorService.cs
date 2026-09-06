@@ -30,9 +30,11 @@ namespace Selfaware.Features.Quizzes
                 .FirstOrDefaultAsync();
             if (quiz == null)
             {
+               
                 return ServiceResult<Guid>.Failed("Quiz not found or access denied");
             }
 
+           
             switch (dto.Field)
             {
                 case SettingsField.Title:
@@ -41,6 +43,10 @@ namespace Selfaware.Features.Quizzes
 
                 case SettingsField.Description:
                     quiz.Description = dto.Value;
+                    break;
+
+                case SettingsField.QuizType:
+                    quiz.QuizType = dto.Type?? QuizType.Knowledge;
                     break;
 
                 case SettingsField.TimeLimit:

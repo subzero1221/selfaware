@@ -2,7 +2,7 @@
 
 namespace Selfaware.Features.Quizzes.DTOs
 {
-    public record EditQuizSettingsDto(SettingsField Field, string Value);
+    public record EditQuizSettingsDto(SettingsField Field, string? Value, QuizType? Type=null);
 
     public record EditQuestionDto(Guid Id, string Text, EditOptionDto[] Options, string? ImageUrl = null, string? ImagePublicId=null);
 
@@ -14,6 +14,8 @@ namespace Selfaware.Features.Quizzes.DTOs
             Title = 0,
             Description = 1,
             TimeLimit = 2,
+
+            QuizType = 3,
         }
     
 
