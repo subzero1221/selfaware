@@ -29,9 +29,25 @@ namespace Selfaware.Features.Quizzes
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult> createQuiz([FromBody] CreateQuizDto dto)
+        public async Task<ActionResult> CreateQuiz([FromBody] CreateQuizDto dto)
         {
             var result = await _quizService.CreateQuizAsync(dto);
+
+            return Ok(CustomResponse<QuizDto>.SuccessResponse(result.Data, result.Message));
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("empty")]
+        public async Task<ActionResult> CreateEmptyQuiz()
+        {
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(
+                    CustomResponse<Guid>.ErrorResponse("Your have no permission for this action")
+                );
+
+            var result = await _quizService.CreateEmptyQuizAsync(userId);
 
             return Ok(CustomResponse<QuizDto>.SuccessResponse(result.Data, result.Message));
         }
@@ -172,6 +188,7 @@ namespace Selfaware.Features.Quizzes
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
+            Console.WriteLine($"quiz type is: {dto.QuizType}");
             var result = await _quizEditorService.EditSettingsAsync(id, userId, dto);
             if (result == null)
             {

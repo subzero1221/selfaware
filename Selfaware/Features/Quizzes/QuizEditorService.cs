@@ -46,7 +46,7 @@ namespace Selfaware.Features.Quizzes
                     break;
 
                 case SettingsField.QuizType:
-                    quiz.QuizType = dto.Type?? QuizType.Knowledge;
+                    quiz.QuizType = dto.QuizType?? QuizType.Knowledge;
                     break;
 
                 case SettingsField.TimeLimit:

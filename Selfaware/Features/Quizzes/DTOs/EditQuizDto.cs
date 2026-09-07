@@ -1,8 +1,9 @@
 ﻿using Selfaware.Features.Quizzes.Enums;
+using System.Text.Json.Serialization;
 
 namespace Selfaware.Features.Quizzes.DTOs
 {
-    public record EditQuizSettingsDto(SettingsField Field, string? Value, QuizType? Type=null);
+    public record EditQuizSettingsDto(SettingsField Field, string? Value = null, [property: JsonConverter(typeof(JsonStringEnumConverter))] QuizType? QuizType = null);
 
     public record EditQuestionDto(Guid Id, string Text, EditOptionDto[] Options, string? ImageUrl = null, string? ImagePublicId=null);
 

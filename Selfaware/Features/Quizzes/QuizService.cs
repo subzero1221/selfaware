@@ -74,6 +74,37 @@ namespace Selfaware.Features.Quizzes
             );
         }
 
+        public async Task<ServiceResult<QuizDto>> CreateEmptyQuizAsync(string userId)
+        {
+
+            var emptyQuiz = new Quiz
+            {
+                Id = Guid.NewGuid(),
+                CreatedById = userId,
+                Title = "...",
+                Description = "...",
+                QuestionCount = 0,
+                TimeLimit = 30,
+                QuizType = QuizType.Knowledge,
+                
+            };
+
+            _context.Quizzes.Add(emptyQuiz);
+            await _context.SaveChangesAsync();
+
+            return ServiceResult<QuizDto>.Ok(
+                new QuizDto(
+                    QuizId: emptyQuiz.Id,
+                    Title: emptyQuiz.Title,
+                    Description: emptyQuiz.Description,
+                    TimeLimitInMinutes: 30,
+                    QuizType: emptyQuiz.QuizType,
+                    QuestionCount: emptyQuiz.QuestionCount
+                ),
+                "Quiz created successfully"
+            );
+        }
+
         public async Task<ServiceResult<Guid>> PutQuizAsync(
             PutQuizDto dto,
             Guid quizId,
