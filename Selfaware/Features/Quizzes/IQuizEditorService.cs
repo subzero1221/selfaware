@@ -16,7 +16,7 @@ namespace Selfaware.Features.Quizzes
             string userId,
             EditQuestionDto dto
         );
-
+        Task<ServiceResult<Guid>> CreateQuestionAsync(Guid quizId, string userId, CreateQuestionDto dto);
         Task<ServiceResult<Guid>> DeleteQuestionAsync(Guid quizId, Guid questionId, string userId);
     }
 }

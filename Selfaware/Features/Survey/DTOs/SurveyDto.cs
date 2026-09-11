@@ -1,4 +1,5 @@
-﻿using Selfaware.Features.Quizzes.DTOs;
+﻿using Microsoft.Identity.Client;
+using Selfaware.Features.Quizzes.DTOs;
 
 namespace Selfaware.Features.Survey.DTOs
 {
@@ -6,11 +7,26 @@ namespace Selfaware.Features.Survey.DTOs
     (
         Guid SurveyId,
         QuizForSurveyDto Quiz,
-        SurveyStatus Status 
+        string ShareCode,
+        int CompletedBy,
+        bool IsActive,
+        bool AllowAnonymous,
+        DateTime? ExpiresAt,
+        DateTime CreatedAt,
+        DateTime LastActivatedAt
+    
         );
 
 
-    
+    public class ActivateSurveyDto
+    {
+        public Guid QuizId { get; set; }
+
+        public int? DurationInDays { get; set; }
+
+        public bool AllowAnonymous { get; set; } = true;
+    }
+
     public record QuizForSurveyDto
     (
         Guid QuizId,
@@ -18,13 +34,10 @@ namespace Selfaware.Features.Survey.DTOs
         QuizStatus QuizStatus,
         List<QuestionDto> Questions,
         int QuestionCount,
-        string Description = null,
-        string Title = null
+        string? Description = null,
+        string? Title = null
     );
 
     //enums
-    public enum SurveyStatus{
-        Answering = 0,
-        ShowingResults = 1,
-        }
+    
 }

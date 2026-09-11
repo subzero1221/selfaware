@@ -1,4 +1,5 @@
 ﻿using Selfaware.Features.Quizzes.Enums;
+using System.Text.Json.Serialization;
 
 namespace Selfaware.Features.Quizzes.DTOs
 {
@@ -15,7 +16,7 @@ namespace Selfaware.Features.Quizzes.DTOs
         string Text,
         List<OptionDto> Options,
         int Order,
-        QuestionType QuestionType,
+        [property: JsonConverter(typeof(JsonStringEnumConverter))] QuestionType QuestionType,
         string? ImageUrl = null,
         string? ImagePublicId = null
     );

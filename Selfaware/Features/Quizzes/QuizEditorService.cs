@@ -4,6 +4,7 @@ using Selfaware.Features.Quizzes.Enums;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Cloudinary;
 using Selfaware.Shared.Models;
+using Selfaware.Features.Quizzes.Entities;
 
 namespace Selfaware.Features.Quizzes
 {
@@ -116,6 +117,45 @@ namespace Selfaware.Features.Quizzes
             
 
                 return ServiceResult<Guid>.Ok(questionId, "Question update success");
+        }
+
+
+        public async Task<ServiceResult<Guid>> CreateQuestionAsync(
+           Guid quizId,
+           string userId,
+           CreateQuestionDto dto
+       )
+        {
+            var questionsCount = await _context.Questions
+                .Where(q =>
+                    q.QuizId == quizId && q.Quiz.CreatedById == userId
+                ).CountAsync();
+            Guid questionId = Guid.NewGuid();
+
+            var newQuestion = new Question
+            {
+                Id = questionId,
+                QuizId = quizId,
+                Order = questionsCount + 1,
+                Text = dto.Text,
+                ImageUrl = dto.ImageUrl,
+                ImagePublicId = dto.ImagePublicId,
+                Type = QuestionType.SingleChoice,
+                Options = dto.Options.Select(opt => new Option
+                {
+                    Id = Guid.NewGuid(),
+                    QuestionId = questionId,
+                    Text = opt.Text,
+                    Score = opt.Score
+                }).ToList()
+            };
+
+            _context.Questions.Add(newQuestion);
+            await _context.SaveChangesAsync();
+
+
+
+            return ServiceResult<Guid>.Ok(questionId, "Question added Succesfully");
         }
 
         public async Task<ServiceResult<Guid>> DeleteQuestionAsync(

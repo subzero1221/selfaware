@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Selfaware.Shared.Models;
+using Selfaware.Features.Survey.DTOs;
 
 
 namespace Selfaware.Features.Survey
@@ -11,9 +12,13 @@ namespace Selfaware.Features.Survey
     {
         [Authorize(Roles ="Admin")]
         [HttpPost]
-        public async Task<ActionResult> StartSurvey()
+        public async Task<ActionResult> ActivateSurvey([FromBody] ActivateSurveyDto dto)
         {
+
             return Ok(CustomResponse<string>.SuccessResponse("nah"));
         }
+    
+   
+   
     }
 }

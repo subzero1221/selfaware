@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Selfaware.Features.Game.GameSession.Entities;
 using Selfaware.Features.Quizzes.Entities;
+using Selfaware.Features.Survey.Entities;
 using Selfaware.Features.User.Entities;
 
 namespace Selfaware.Infrastructure.Data
@@ -13,8 +14,9 @@ namespace Selfaware.Infrastructure.Data
 
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
-        public DbSet<UserSubmission> UserSubmissions { get; set; }
+        public DbSet<Survey> Surveys { get; set; }
 
+        public DbSet<Answer> Answers { get; set; }
         public DbSet<GameSessionEntity> GameSessionEntities { get; set; }
 
         public DbSet<Player> Players { get; set; }
@@ -23,10 +25,7 @@ namespace Selfaware.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder
-                .Entity<UserSubmission>()
-                .Property(b => b.RawAnswersJson)
-                .HasColumnType("jsonb");
+           
 
             modelBuilder.Entity<Quiz>()
     .Property(q => q.QuizType)

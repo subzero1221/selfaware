@@ -221,6 +221,23 @@ namespace Selfaware.Features.Quizzes
         }
 
         [Authorize(Roles = "Admin")]
+        [HttpPost("{quizId:guid}/questions")]
+        public async Task<ActionResult> CreateQuizQuestion([FromRoute] Guid quizId, [FromBody] CreateQuestionDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _quizEditorService.CreateQuestionAsync(quizId,userId, dto);
+            if (result == null)
+            {
+                return NotFound(CustomResponse<string>.ErrorResponse("Question not found."));
+            }
+
+            return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, result.Message));
+        }
+
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:guid}/questions/{questionId:guid}")]
         public async Task<ActionResult> DeleteQuizQuestion([FromRoute] Guid id, Guid questionId)
         {
