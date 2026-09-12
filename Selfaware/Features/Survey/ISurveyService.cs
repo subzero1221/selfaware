@@ -5,6 +5,7 @@ namespace Selfaware.Features.Survey
 {
     public interface ISurveyService
     {
-        Task<ServiceResult<SurveyDto>> ActivateSurveyAsync(ActivateSurveyDto dto);
+        Task<ServiceResult<SurveyDto>> ActivateSurveyAsync(ActivateSurveyDto dto, string userId);
+        Task<ServiceResult<List<SurveyDto>>> GetMyActiveSurveysAsync(string userId);
     }
 }

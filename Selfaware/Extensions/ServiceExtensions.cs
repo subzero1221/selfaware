@@ -152,7 +152,7 @@ namespace Selfaware.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ILobbyService, LobbyService>();
             services.AddScoped<IGameSessionService, GameSessionService>();
-            services.AddScoped<ISurveyService, SurveyService>();
+            services.AddScoped<ISurveyService, SurveyService>(); 
 
 
             //Internal toolebi gaakete saqme da daibride

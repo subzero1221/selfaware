@@ -1,10 +1,16 @@
-﻿namespace Selfaware.Features.Survey.Entities
+﻿using Selfaware.Features.Quizzes.Entities;
+
+namespace Selfaware.Features.Survey.Entities
 {
     public class Survey
     {
        public Guid Id { get; set; }
         
        public Guid QuizId { get; set; }
+
+        public Quiz Quiz { get; set; }
+
+        public string RunById { get; set; } 
        public string ShareCode { get; set; } = string.Empty;
        
         public int CompletedBy { get; set; }

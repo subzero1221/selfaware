@@ -6,6 +6,7 @@ namespace Selfaware.Features.Survey.DTOs
     public record SurveyDto
     (
         Guid SurveyId,
+        string RunById,
         QuizForSurveyDto Quiz,
         string ShareCode,
         int CompletedBy,
@@ -32,8 +33,8 @@ namespace Selfaware.Features.Survey.DTOs
         Guid QuizId,
         QuizType QuizType,
         QuizStatus QuizStatus,
-        List<QuestionDto> Questions,
         int QuestionCount,
+        List<QuestionDto>? Questions = null,
         string? Description = null,
         string? Title = null
     );
