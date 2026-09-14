@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NanoidDotNet;
 using Selfaware.Features.Quizzes;
-using Selfaware.Features.Quizzes.DTOs.Selfaware.Features.Quizzes.DTOs;
+using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Survey.DTOs;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Models;
@@ -74,9 +74,24 @@ namespace Selfaware.Features.Survey
 
         }
 
+        public async Task<ServiceResult<Guid>> DeactivateSurveyAsync(Guid surveyId, string userId)
+        {
+            var rowsAffected = await _context.Surveys
+         .Where(s => s.Id == surveyId && s.RunById == userId && s.IsActive)
+         .ExecuteUpdateAsync(s => s.SetProperty(b => b.IsActive, false));
+
+            if (rowsAffected == 0)
+            {
+                return ServiceResult<Guid>.Failed("Survey not found or already inactive");
+            }
+
+            return ServiceResult<Guid>.Ok(surveyId, "Survey deactivated successfully");
+
+        }
+
         public async Task<ServiceResult<List<SurveyDto>>> GetMyActiveSurveysAsync(string userId)
         {
-            var query = _context.Surveys.AsNoTracking().Where(survey => survey.RunById == userId).Include(survey=>survey.Quiz);
+            var query = _context.Surveys.AsNoTracking().Where(survey => survey.RunById == userId && survey.IsActive == true).Include(survey=>survey.Quiz);
 
             var surveyList = await query.Select(survey => new SurveyDto(
                 SurveyId: survey.Id,

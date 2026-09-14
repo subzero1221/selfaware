@@ -146,7 +146,7 @@ namespace Selfaware.Features.Quizzes
                     Id = Guid.NewGuid(),
                     QuestionId = questionId,
                     Text = opt.Text,
-                    Score = opt.Score
+                    Score = opt.Score ?? 0
                 }).ToList()
             };
 

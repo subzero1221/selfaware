@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Survey.DTOs;
 using Selfaware.Shared.Models;
 using System.Security.Claims;
@@ -38,8 +39,29 @@ namespace Selfaware.Features.Survey
 
             return Ok(CustomResponse<SurveyDto>.SuccessResponse(result.Data, "Survey activated successfully"));
         }
-    
-       public async Task<ActionResult> GetMyActiveSurveys()
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("{id:guid}")]
+        public async Task<ActionResult> DeactivateSurvey(Guid id)
+        {
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _surveyService.DeactivateSurveyAsync(id, userId);
+
+            if (!result.Success)
+            {
+                return BadRequest(CustomResponse<string>.ErrorResponse(result.Message));
+            }
+
+            return Ok(CustomResponse<Guid>.SuccessResponse(result.Data, "Survey Deactivated successfully"));
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<ActionResult> GetMyActiveSurveys()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
@@ -52,6 +74,7 @@ namespace Selfaware.Features.Survey
             }
             return Ok(CustomResponse<List<SurveyDto>>.SuccessResponse(result.Data, "Survey activated successfully"));
         }
+
    
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿
 
 namespace Selfaware.Features.Survey.Entities
 {

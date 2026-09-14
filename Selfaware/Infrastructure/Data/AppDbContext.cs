@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Selfaware.Features.Game.GameSession.Entities;
 using Selfaware.Features.Quizzes.Entities;
 using Selfaware.Features.Survey.Entities;
+using Selfaware.Features.Survey.SurveySession.Entities;
 using Selfaware.Features.User.Entities;
 
 namespace Selfaware.Infrastructure.Data
@@ -18,6 +19,8 @@ namespace Selfaware.Infrastructure.Data
 
         public DbSet<Answer> Answers { get; set; }
         public DbSet<GameSessionEntity> GameSessionEntities { get; set; }
+
+        public DbSet<SurveySession> SurveySessions { get; set; }
 
         public DbSet<Player> Players { get; set; }
 

@@ -45,7 +45,7 @@ namespace Selfaware.Features.Quizzes
                                 Order = index + 1,
                                 Options = question
                                     .Options.Select(
-                                        (o, index) => new Option { Text = o.Text, Score = o.Score }
+                                        (o, index) => new Option { Text = o.Text, Score = o.Score ?? 0}
                                     )
                                     .ToList(),
 
@@ -67,7 +67,7 @@ namespace Selfaware.Features.Quizzes
                     Title: quiz.Title,
                     Description: quiz.Description,
                     TimeLimitInMinutes: dto.TimeLimitInMinutes,
-                    QuizType:dto.QuizType,
+                    QuizType: dto.QuizType,
                     QuestionCount: quiz.QuestionCount
                 ),
                 "Quiz created successfully"
@@ -86,7 +86,7 @@ namespace Selfaware.Features.Quizzes
                 QuestionCount = 0,
                 TimeLimit = 30,
                 QuizType = QuizType.Knowledge,
-                
+
             };
 
             _context.Quizzes.Add(emptyQuiz);
@@ -146,7 +146,7 @@ namespace Selfaware.Features.Quizzes
                                     Id = Guid.NewGuid(),
                                     Text = oDto.Text,
 
-                                    Score = oDto.Score,
+                                    Score = oDto.Score ??0,
                                 })
                                 .ToList(),
                             ImageUrl = qDto.ImageUrl,
@@ -264,7 +264,7 @@ namespace Selfaware.Features.Quizzes
                 Id: quizEntity.Id,
                 TimeLimit: quizEntity.TimeLimit,
                 QuizStatus: quizEntity.QuizStatus,
-                QuizType:quizEntity.QuizType,
+                QuizType: quizEntity.QuizType,
                 Title: quizEntity.Title,
                 Description: quizEntity.Description,
                 Slug: quizEntity.Slug,
@@ -281,8 +281,8 @@ namespace Selfaware.Features.Quizzes
                                 Score: option.Score
                             ))
                             .ToList(),
-                        ImageUrl:question.ImageUrl,
-                        ImagePublicId:question.ImagePublicId
+                        ImageUrl: question.ImageUrl,
+                        ImagePublicId: question.ImagePublicId
                     ))
                     .ToList()
             );
@@ -309,11 +309,11 @@ namespace Selfaware.Features.Quizzes
         public async Task<ServiceResult<QuizForSurveyDto>> GetQuizForSurvey(Guid quizId)
         {
 
-         var quizEntity = await _context
-        .Quizzes.AsNoTracking()
-        .Include(q => q.Questions)
-            .ThenInclude(question => question.Options)
-        .FirstOrDefaultAsync(q => q.Id == quizId && q.QuizType == QuizType.Survey);
+            var quizEntity = await _context
+           .Quizzes.AsNoTracking()
+           .Include(q => q.Questions)
+               .ThenInclude(question => question.Options)
+           .FirstOrDefaultAsync(q => q.Id == quizId && q.QuizType == QuizType.Survey);
 
             if (quizEntity == null)
             {

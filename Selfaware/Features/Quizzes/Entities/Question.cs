@@ -26,7 +26,8 @@ namespace Selfaware.Features.Quizzes.Entities
         public Guid Id { get; set; }
         public Guid QuestionId { get; set; }
         public string Text { get; set; } = string.Empty;
-        public int Score { get; set; }
+        public int Score { get; set; } = 0;
+        public int VoteCount { get; set; } = 0;
     }
 }
 
