@@ -119,5 +119,46 @@ namespace Selfaware.Features.Survey
             return ServiceResult<List<SurveyDto>>.Ok(surveyList, "Surveys fetched succesfully");
         }
 
+        public async Task<ServiceResult<SurveyDto>> GetSurveyAsync(string shareCode)
+        {
+            var query = await _context.Surveys
+        .AsNoTracking()
+        .Include(s => s.Quiz)
+            .ThenInclude(q => q.Questions) 
+        .Where(survey => survey.ShareCode == shareCode && survey.IsActive)
+        .FirstOrDefaultAsync();
+
+            if (query == null)
+            {
+                return ServiceResult<SurveyDto>.Failed("Survey is not active");
+            }
+
+
+            var survey = new SurveyDto(
+                  SurveyId: query.Id,
+                  RunById: query.RunById,
+                   Quiz: new QuizForSurveyDto(
+        QuizId: query.Quiz.Id,
+        QuizType:query.Quiz.QuizType,
+        QuizStatus: query.Quiz.QuizStatus,
+        QuestionCount: query.Quiz.Questions.Count,
+        Questions: null,
+        Description: query.Quiz.Description,
+        Title: query.Quiz.Title
+                    ),
+             ShareCode: query.ShareCode,
+             CompletedBy: query.CompletedBy,
+             IsActive: query.IsActive,
+             AllowAnonymous: query.AllowAnonymous,
+             ExpiresAt: query.ExpiresAt,
+             CreatedAt: query.CreatedAt,
+             LastActivatedAt: query.LastActivatedAt
+           );
+
+
+
+            return ServiceResult<SurveyDto>.Ok(survey, "Survey fetched succesfully");
+        }
+
     }
 }

@@ -10,5 +10,7 @@ namespace Selfaware.Features.Survey
         Task<ServiceResult<Guid>> DeactivateSurveyAsync(Guid surveyId, string userId);
         Task<ServiceResult<List<SurveyDto>>> GetMyActiveSurveysAsync(string userId);
 
+        Task<ServiceResult<SurveyDto>> GetSurveyAsync(string shareCode);
+
     }
 }

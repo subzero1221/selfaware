@@ -6,6 +6,9 @@ using Selfaware.Shared.Models;
 
 namespace Selfaware.Features.Survey.SurveySession
 {
+
+    [ApiController]
+    [Route("api/[controller]")]
     public class SurveySessionController:ControllerBase
     {
         public readonly ISurveySessionService _surveySessionService;        
@@ -19,7 +22,7 @@ namespace Selfaware.Features.Survey.SurveySession
         public async Task<ActionResult> StartSurveySession([FromBody] StartSurveySessionDto dto)
         {
             var result = await _surveySessionService.StartSurveySessionAsync(dto);
-            if (result.Success)
+            if (!result.Success)
             {
                 return BadRequest(CustomResponse<string>.ErrorResponse(result.Message));
             }
@@ -27,10 +30,10 @@ namespace Selfaware.Features.Survey.SurveySession
             return Ok(CustomResponse<SurveySessionDto>.SuccessResponse(result.Data, "Survey started successfuly"));
         }
 
-        [HttpGet("question")]
-        public async Task<ActionResult> GetQuestionForSurveySession([FromBody] GetQuestionForSurveySessionDto dto)
+        [HttpGet("question/{shareCode}")]
+        public async Task<ActionResult> GetQuestionForSurveySession([FromRoute] string shareCode)
         {
-            var result = await _surveySessionService.GetQuestionForSurveySessionAsync(dto);
+            var result = await _surveySessionService.GetFirstQuestionAsync(shareCode);
 
 
             if (!result.Success)

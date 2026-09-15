@@ -27,7 +27,7 @@ namespace Selfaware.Features.Survey.SurveySession
             var surveySession = new Entities.SurveySession
             {
                 Id = surveySessionId,
-                SurveyId = dto.SurveyId,
+                SurveyId = surveySessionId,
                 AnonymousToken = anonymousToken.ToString(),
                 Nickname = dto.NickName??null,
             };
@@ -51,10 +51,10 @@ namespace Selfaware.Features.Survey.SurveySession
 
         }
 
-        public async Task<ServiceResult<QuestionDto>> GetFirstQuestionAsync(GetQuestionForSurveySessionDto dto)
+        public async Task<ServiceResult<QuestionDto>> GetFirstQuestionAsync(string shareCode)
         {
         
-            var surveyExists = await _context.Surveys.AnyAsync(s => s.Id == dto.SurveyId);
+            var surveyExists = await _context.Surveys.AnyAsync(s => s.ShareCode == shareCode);
             if (!surveyExists)
             {
                 return ServiceResult<QuestionDto>.Failed("Survey not found");
@@ -62,7 +62,7 @@ namespace Selfaware.Features.Survey.SurveySession
 
         
             var firstQuestionDto = await _context.Surveys
-                .Where(s => s.Id == dto.SurveyId)
+                .Where(s => s.ShareCode == shareCode)
                 .SelectMany(s => s.Quiz.Questions)
                 .OrderBy(q => q.Order) 
                 .Select(q => new QuestionDto(

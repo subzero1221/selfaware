@@ -7,6 +7,6 @@ namespace Selfaware.Features.Survey.SurveySession
     public interface ISurveySessionService
     {
         public Task<ServiceResult<SurveySessionDto>> StartSurveySessionAsync(StartSurveySessionDto dto);
-        public Task<ServiceResult<QuestionDto>> GetQuestionForSurveySessionAsync(GetQuestionForSurveySessionDto dto);
+        public Task<ServiceResult<QuestionDto>> GetFirstQuestionAsync(string shareCode);
     }
 }

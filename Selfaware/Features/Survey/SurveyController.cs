@@ -75,6 +75,18 @@ namespace Selfaware.Features.Survey
             return Ok(CustomResponse<List<SurveyDto>>.SuccessResponse(result.Data, "Survey activated successfully"));
         }
 
+        [HttpGet("{shareCode}")]
+        public async Task<ActionResult> GetSurvey([FromRoute] string shareCode)
+        {
+            var result = await _surveyService.GetSurveyAsync(shareCode);
+            if (!result.Success)
+            {
+                return BadRequest(CustomResponse<string>.ErrorResponse(result.Message));
+            }
+
+            return Ok(CustomResponse<SurveyDto>.SuccessResponse(result.Data, result.Message));
+
+        }
    
     }
 }
