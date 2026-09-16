@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Selfaware.Features.Game.GameSession.DTOs;
 using Selfaware.Features.Quizzes.DTOs;
 using Selfaware.Features.Quizzes.Entities;
 using Selfaware.Features.Survey.SurveySession.Dtos;
@@ -42,6 +43,17 @@ namespace Selfaware.Features.Survey.SurveySession
             }
 
             return Ok(CustomResponse<QuestionDto>.SuccessResponse(result.Data, "Question fetched succesfully"));
+        }
+
+        [HttpPost("answer")]
+        public async Task<ActionResult> SubmitAnswer([FromBody] SubmitSurveyAnswerDto dto)
+        {
+            var result = await _surveySessionService.SubmitAnswerAsync(dto);
+            if (!result.Success)
+            {
+                return BadRequest(CustomResponse<string>.ErrorResponse(result.Message));
+            }
+            return Ok(CustomResponse<UserAnswerDto>.SuccessResponse(result.Data, result.Message));
         }
 
     }

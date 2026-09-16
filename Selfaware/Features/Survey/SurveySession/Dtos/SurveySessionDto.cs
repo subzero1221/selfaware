@@ -4,5 +4,7 @@
 
     public record StartSurveySessionDto(string ShareCode, string? NickName = null);
     public record GetQuestionForSurveySessionDto(string ShareCode, int Order);
-    
+
+    public record UserAnswerDto(Guid Id, Guid QuestionId, Guid OptionId, DateTime SubmitedAt, string? UserId = null);
+    public record SubmitSurveyAnswerDto(Guid QuestionId, Guid OptionId, string? UserId = null);
 }

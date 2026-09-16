@@ -15,9 +15,12 @@ namespace Selfaware.Infrastructure.Data
 
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
+
+        public DbSet<Option> Options { get; set; }
         public DbSet<Survey> Surveys { get; set; }
 
-        public DbSet<Answer> Answers { get; set; }
+
+        public DbSet<UserAnswer> Answers { get; set; }
         public DbSet<GameSessionEntity> GameSessionEntities { get; set; }
 
         public DbSet<SurveySession> SurveySessions { get; set; }
