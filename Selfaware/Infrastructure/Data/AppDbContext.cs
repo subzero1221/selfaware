@@ -31,7 +31,24 @@ namespace Selfaware.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-           
+            modelBuilder.Entity<UserAnswer>(entity =>
+            {
+                entity.HasKey(a => a.Id);
+
+                entity.HasIndex(a => new { a.SurveySessionId, a.QuestionId })
+                      .IsUnique();
+
+              
+                entity.HasOne(a => a.SurveySession)
+                      .WithMany()
+                      .HasForeignKey(a => a.SurveySessionId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(a => a.Option)
+                      .WithMany()
+                      .HasForeignKey(a => a.OptionId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<Quiz>()
     .Property(q => q.QuizType)

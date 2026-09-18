@@ -1,6 +1,8 @@
-﻿using System.Net;
-using System.Text.Json;
+﻿using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Selfaware.Shared.Models;
+using System.Net;
+using System.Text.Json;
 
 namespace Selfaware.Middleware
 {
@@ -32,6 +34,26 @@ namespace Selfaware.Middleware
 
                 switch (ex)
                 {
+                    case DbUpdateException dbEx when dbEx.InnerException is PostgresException pgEx:
+                        switch (pgEx.SqlState)
+                        {
+                            case PostgresErrorCodes.UniqueViolation: 
+                                statusCode = HttpStatusCode.Conflict; 
+                                displayMessage = "You have already submitted an answer for this question.";
+                                break;
+
+                            case PostgresErrorCodes.ForeignKeyViolation: 
+                                statusCode = HttpStatusCode.BadRequest; 
+                                displayMessage = "The provided survey session or option does not exist.";
+                                break;
+
+                            default:
+                                statusCode = HttpStatusCode.BadRequest;
+                                displayMessage = "A database constraint error occurred.";
+                                break;
+                        }
+                        break;
+
                     case ArgumentException:
                     case InvalidOperationException:
                     case FormatException:

@@ -1,9 +1,12 @@
-﻿namespace Selfaware.Features.Survey.SurveySession.Entities
+﻿
+
+namespace Selfaware.Features.Survey.SurveySession.Entities
 {
     public class SurveySession
     {
         public Guid Id { get; set; }
         public Guid SurveyId { get; set; }
+        public Survey.Entities.Survey Survey { get; set; } = null!;
         public string? UserId { get; set; }
         public string AnonymousToken { get; set; } = string.Empty;
 

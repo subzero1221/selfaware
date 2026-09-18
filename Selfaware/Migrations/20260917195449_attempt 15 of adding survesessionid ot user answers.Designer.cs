@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Selfaware.Infrastructure.Data;
@@ -11,9 +12,11 @@ using Selfaware.Infrastructure.Data;
 namespace Selfaware.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260917195449_attempt 15 of adding survesessionid ot user answers")]
+    partial class attempt15ofaddingsurvesessionidotuseranswers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -372,8 +375,6 @@ namespace Selfaware.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SurveyId");
-
                     b.ToTable("SurveySessions");
                 });
 
@@ -404,8 +405,7 @@ namespace Selfaware.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.HasIndex("SurveySessionId", "QuestionId")
-                        .IsUnique();
+                    b.HasIndex("SurveySessionId");
 
                     b.ToTable("Answers");
                 });
@@ -599,23 +599,12 @@ namespace Selfaware.Migrations
                     b.Navigation("Quiz");
                 });
 
-            modelBuilder.Entity("Selfaware.Features.Survey.SurveySession.Entities.SurveySession", b =>
-                {
-                    b.HasOne("Selfaware.Features.Survey.Entities.Survey", "Survey")
-                        .WithMany()
-                        .HasForeignKey("SurveyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Survey");
-                });
-
             modelBuilder.Entity("Selfaware.Features.Survey.SurveySession.Entities.UserAnswer", b =>
                 {
                     b.HasOne("Selfaware.Features.Quizzes.Entities.Option", "Option")
                         .WithMany()
                         .HasForeignKey("OptionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Selfaware.Features.Quizzes.Entities.Question", "Question")

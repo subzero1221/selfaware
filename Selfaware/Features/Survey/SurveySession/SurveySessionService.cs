@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Selfaware.Features.Quizzes.DTOs;
-using Selfaware.Features.Survey.Entities;
 using Selfaware.Features.Survey.SurveySession.Dtos;
 using Selfaware.Features.Survey.SurveySession.Entities;
 using Selfaware.Infrastructure.Data;
@@ -27,7 +25,7 @@ namespace Selfaware.Features.Survey.SurveySession
             var surveySession = new Entities.SurveySession
             {
                 Id = surveySessionId,
-                SurveyId = surveySessionId,
+                SurveyId = dto.SurveyId,
                 AnonymousToken = anonymousToken.ToString(),
                 Nickname = dto.NickName??null,
             };
@@ -51,30 +49,60 @@ namespace Selfaware.Features.Survey.SurveySession
 
         }
 
-        public async Task<ServiceResult<QuestionDto>> GetFirstQuestionAsync(string shareCode)
+        public async Task<ServiceResult<SurveySessionDto>> GetSurveySessionAsync(Guid id)
+        {
+            var surveySession = await _context.SurveySessions.AsNoTracking().Where(surveySession => surveySession.Id == id).Include(surveySession=> surveySession.Survey).ThenInclude(s=>s.Quiz).FirstOrDefaultAsync();
+            if(surveySession == null)
+            {
+                return ServiceResult<SurveySessionDto>.Failed("Survey not found");
+            }
+            var surveySessionDto = new SurveySessionDto(
+                Id: surveySession.Id,
+                SurveyId: surveySession.SurveyId,
+                AnonymousToken: surveySession.AnonymousToken,
+                StartedAt: surveySession.StartedAt,
+                IsCompleted: surveySession.IsCompleted,
+                Survey: surveySession.Survey,
+                Nickname: surveySession.Nickname,
+                UserId: surveySession.UserId,
+                CompletedAt: surveySession.CompletedAt
+                );
+
+            return ServiceResult<SurveySessionDto>.Ok(surveySessionDto, "Survey Session fetched successfully");
+
+        }
+
+        public async Task<ServiceResult<QuestionResultDto>> GetFirstQuestionAsync(Guid surveyId)
         {
         
-            var surveyExists = await _context.Surveys.AnyAsync(s => s.ShareCode == shareCode);
+            var surveyExists = await _context.Surveys.AnyAsync(s => s.Id == surveyId);
             if (!surveyExists)
             {
-                return ServiceResult<QuestionDto>.Failed("Survey not found");
+                return ServiceResult<QuestionResultDto>.Failed("Survey not found");
             }
 
         
             var firstQuestionDto = await _context.Surveys
-                .Where(s => s.ShareCode == shareCode)
+                .Where(s => s.Id == surveyId)
                 .SelectMany(s => s.Quiz.Questions)
                 .OrderBy(q => q.Order) 
-                .Select(q => new QuestionDto(
+                .Select(q => new QuestionResultDto(
                     q.Id,
                     q.Text,
-                    q.Type,
                     q.Order,
-                    q.Options.Select(opt => new OptionDto(
+                _context.Answers.Count(a =>
+                a.OptionId == q.Id &&
+                a.SurveySession.SurveyId == surveyId
+            ),
+                    q.Options
+                    .OrderBy(o => o.Id)
+                    .Select(opt => new OptionResultDto(
                         opt.Id,
                         opt.Text,
-                        null, 
-                        opt.VoteCount
+                        _context.Answers.Count(a =>
+                a.OptionId == opt.Id &&
+                a.SurveySession.SurveyId == surveyId
+            )
                     )).ToList(),
                     q.ImageUrl,
                     q.ImagePublicId
@@ -83,10 +111,10 @@ namespace Selfaware.Features.Survey.SurveySession
 
             if (firstQuestionDto == null)
             {
-                return ServiceResult<QuestionDto>.Failed("Question not found");
+                return ServiceResult<QuestionResultDto>.Failed("Question not found");
             }
 
-            return ServiceResult<QuestionDto>.Ok(firstQuestionDto, "Question fetched successfully");
+            return ServiceResult<QuestionResultDto>.Ok(firstQuestionDto, "Question fetched successfully");
         }
 
 
@@ -99,21 +127,6 @@ namespace Selfaware.Features.Survey.SurveySession
                 userId = parsedUserId;
             }
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-
-            var rowsAffected = await _context.Options
-             .Where(o => o.Id == dto.OptionId && o.QuestionId == dto.QuestionId)
-             .ExecuteUpdateAsync(s => s.SetProperty(
-                 v => v.VoteCount,
-                 v => v.VoteCount + 1
-             ));
-
-            if (rowsAffected == 0)
-            {
-                return ServiceResult<UserAnswerDto>.Failed("Selected option or question was not found.");
-            }
-
-        
             var answerId = Guid.NewGuid();
             var answer = new UserAnswer
             {
@@ -127,14 +140,11 @@ namespace Selfaware.Features.Survey.SurveySession
             _context.Answers.Add(answer);
             await _context.SaveChangesAsync();
 
-           
-            await transaction.CommitAsync();
-
             var submittedAnswer = new UserAnswerDto(
                 Id: answerId,
                 QuestionId: answer.QuestionId,
                 OptionId: answer.OptionId,
-                SubmitedAt: answer.SubmittedAt,
+                SubmittedAt: answer.SubmittedAt,
                 UserId: userId?.ToString()
             );
 

@@ -31,10 +31,23 @@ namespace Selfaware.Features.Survey.SurveySession
             return Ok(CustomResponse<SurveySessionDto>.SuccessResponse(result.Data, "Survey started successfuly"));
         }
 
-        [HttpGet("question/{shareCode}")]
-        public async Task<ActionResult> GetQuestionForSurveySession([FromRoute] string shareCode)
+        [HttpGet]
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult> GetSurveySession([FromRoute] Guid id)
         {
-            var result = await _surveySessionService.GetFirstQuestionAsync(shareCode);
+            var result = await _surveySessionService.GetSurveySessionAsync(id);
+            if (!result.Success)
+            {
+                return BadRequest(CustomResponse<string>.ErrorResponse(result.Message));
+            }
+
+            return Ok(CustomResponse<SurveySessionDto>.SuccessResponse(result.Data, "Survey started successfuly"));
+        }
+
+        [HttpGet("question/{surveyId:guid}")]
+        public async Task<ActionResult> GetQuestionForSurveySession([FromRoute] Guid surveyId)
+        {
+            var result = await _surveySessionService.GetFirstQuestionAsync(surveyId);
 
 
             if (!result.Success)
@@ -42,7 +55,7 @@ namespace Selfaware.Features.Survey.SurveySession
                 return BadRequest(CustomResponse<string>.ErrorResponse(result.Message));
             }
 
-            return Ok(CustomResponse<QuestionDto>.SuccessResponse(result.Data, "Question fetched succesfully"));
+            return Ok(CustomResponse<QuestionResultDto>.SuccessResponse(result.Data, "Question fetched succesfully"));
         }
 
         [HttpPost("answer")]
