@@ -57,7 +57,7 @@ namespace Selfaware.Features.Survey
 
             var activatedSurvey = new SurveyDto
                 (
-                SurveyId: surveyId,
+                Id: surveyId,
                 Quiz: quiz.Data,
                 RunById:userId,
                 ShareCode:shareCode,
@@ -94,7 +94,7 @@ namespace Selfaware.Features.Survey
             var query = _context.Surveys.AsNoTracking().Where(survey => survey.RunById == userId && survey.IsActive == true).Include(survey=>survey.Quiz);
 
             var surveyList = await query.Select(survey => new SurveyDto(
-                SurveyId: survey.Id,
+                Id: survey.Id,
                 RunById: survey.RunById,
                 Quiz: new QuizForSurveyDto(
                      QuizId: survey.Quiz.Id,
@@ -135,7 +135,7 @@ namespace Selfaware.Features.Survey
 
 
             var survey = new SurveyDto(
-                  SurveyId: query.Id,
+                  Id: query.Id,
                   RunById: query.RunById,
                    Quiz: new QuizForSurveyDto(
         QuizId: query.Quiz.Id,

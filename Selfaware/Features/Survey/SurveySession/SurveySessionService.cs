@@ -21,6 +21,7 @@ namespace Selfaware.Features.Survey.SurveySession
 
             Guid surveySessionId = Guid.NewGuid();
             Guid anonymousToken = Guid.NewGuid();
+           
 
             var surveySession = new Entities.SurveySession
             {
@@ -72,49 +73,53 @@ namespace Selfaware.Features.Survey.SurveySession
 
         }
 
-        public async Task<ServiceResult<QuestionResultDto>> GetFirstQuestionAsync(Guid surveyId)
+        public async Task<ServiceResult<NextQuestionResponseDto>> GetQuestionAsync(Guid surveyId, int order)
         {
-        
             var surveyExists = await _context.Surveys.AnyAsync(s => s.Id == surveyId);
             if (!surveyExists)
-            {
-                return ServiceResult<QuestionResultDto>.Failed("Survey not found");
-            }
+                return ServiceResult<NextQuestionResponseDto>.Failed("Survey not found");
 
-        
-            var firstQuestionDto = await _context.Surveys
+            var nextQuestionDto = await _context.Surveys
                 .Where(s => s.Id == surveyId)
                 .SelectMany(s => s.Quiz.Questions)
-                .OrderBy(q => q.Order) 
+                .Where(q => q.Order > order)
+                .OrderBy(q => q.Order)
                 .Select(q => new QuestionResultDto(
-                    q.Id,
-                    q.Text,
-                    q.Order,
-                _context.Answers.Count(a =>
-                a.OptionId == q.Id &&
-                a.SurveySession.SurveyId == surveyId
-            ),
-                    q.Options
-                    .OrderBy(o => o.Id)
-                    .Select(opt => new OptionResultDto(
-                        opt.Id,
-                        opt.Text,
-                        _context.Answers.Count(a =>
-                a.OptionId == opt.Id &&
-                a.SurveySession.SurveyId == surveyId
-            )
+                    q.Id, q.Text, q.Order,
+                    _context.Answers.Count(a => a.QuestionId == q.Id && a.SurveySession.SurveyId == surveyId),
+                    q.Options.OrderBy(o => o.Id).Select(opt => new OptionResultDto(
+                        opt.Id, opt.Text,
+                        _context.Answers.Count(a => a.OptionId == opt.Id && a.SurveySession.SurveyId == surveyId)
                     )).ToList(),
-                    q.ImageUrl,
-                    q.ImagePublicId
+                    q.ImageUrl, q.ImagePublicId
                 ))
                 .FirstOrDefaultAsync();
 
-            if (firstQuestionDto == null)
+            if (nextQuestionDto == null)
             {
-                return ServiceResult<QuestionResultDto>.Failed("Question not found");
+              
+                var hasQuestions = await _context.Surveys
+                    .Where(s => s.Id == surveyId)
+                    .SelectMany(s => s.Quiz.Questions)
+                    .AnyAsync();
+
+                if (hasQuestions)
+                {
+                 
+                    return ServiceResult<NextQuestionResponseDto>.Ok(
+                        new NextQuestionResponseDto(null, true),
+                        "Survey completed"
+                    );
+                }
+
+                return ServiceResult<NextQuestionResponseDto>.Failed("Survey has no questions");
             }
 
-            return ServiceResult<QuestionResultDto>.Ok(firstQuestionDto, "Question fetched successfully");
+
+            return ServiceResult<NextQuestionResponseDto>.Ok(
+                new NextQuestionResponseDto(nextQuestionDto, false),
+                "Question fetched successfully"
+            );
         }
 
 
@@ -131,6 +136,7 @@ namespace Selfaware.Features.Survey.SurveySession
             var answer = new UserAnswer
             {
                 Id = answerId,
+                SurveySessionId = dto.SurveySessionId,
                 QuestionId = dto.QuestionId,
                 OptionId = dto.OptionId,
                 SubmittedAt = DateTime.UtcNow,
@@ -142,6 +148,7 @@ namespace Selfaware.Features.Survey.SurveySession
 
             var submittedAnswer = new UserAnswerDto(
                 Id: answerId,
+                SurveySessionId:answer.SurveySessionId,
                 QuestionId: answer.QuestionId,
                 OptionId: answer.OptionId,
                 SubmittedAt: answer.SubmittedAt,

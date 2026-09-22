@@ -44,10 +44,10 @@ namespace Selfaware.Features.Survey.SurveySession
             return Ok(CustomResponse<SurveySessionDto>.SuccessResponse(result.Data, "Survey started successfuly"));
         }
 
-        [HttpGet("question/{surveyId:guid}")]
-        public async Task<ActionResult> GetQuestionForSurveySession([FromRoute] Guid surveyId)
+        [HttpGet("{surveyId:guid}/question/{order:int}")]
+        public async Task<ActionResult> GetQuestionForSurveySession([FromRoute] Guid surveyId, [FromRoute] int order)
         {
-            var result = await _surveySessionService.GetFirstQuestionAsync(surveyId);
+            var result = await _surveySessionService.GetQuestionAsync(surveyId, order);
 
 
             if (!result.Success)
@@ -55,7 +55,7 @@ namespace Selfaware.Features.Survey.SurveySession
                 return BadRequest(CustomResponse<string>.ErrorResponse(result.Message));
             }
 
-            return Ok(CustomResponse<QuestionResultDto>.SuccessResponse(result.Data, "Question fetched succesfully"));
+            return Ok(CustomResponse<NextQuestionResponseDto>.SuccessResponse(result.Data, "Question fetched succesfully"));
         }
 
         [HttpPost("answer")]

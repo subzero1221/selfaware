@@ -1,11 +1,11 @@
-﻿using Microsoft.Identity.Client;
+﻿
 using Selfaware.Features.Quizzes.DTOs;
 
 namespace Selfaware.Features.Survey.DTOs
 {
     public record SurveyDto
     (
-        Guid SurveyId,
+        Guid Id,
         string RunById,
         QuizForSurveyDto Quiz,
         string ShareCode,
