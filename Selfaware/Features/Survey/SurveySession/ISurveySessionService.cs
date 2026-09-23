@@ -10,6 +10,7 @@ namespace Selfaware.Features.Survey.SurveySession
 
         public Task<ServiceResult<SurveySessionDto>> GetSurveySessionAsync(Guid id);
         public Task<ServiceResult<NextQuestionResponseDto>> GetQuestionAsync(Guid surveyId, int order);
+        public Task<ServiceResult<SurveySessionResultDto>> GetSurveySessionResultAsync(Guid surveySessionId);
 
         public Task<ServiceResult<UserAnswerDto>> SubmitAnswerAsync(SubmitSurveyAnswerDto dto);
     }

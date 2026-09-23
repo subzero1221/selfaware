@@ -15,7 +15,6 @@ namespace Selfaware.Features.Survey.DTOs
         DateTime? ExpiresAt,
         DateTime CreatedAt,
         DateTime LastActivatedAt
-    
         );
 
 

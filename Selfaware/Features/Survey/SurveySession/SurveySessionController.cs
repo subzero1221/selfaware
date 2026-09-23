@@ -58,6 +58,20 @@ namespace Selfaware.Features.Survey.SurveySession
             return Ok(CustomResponse<NextQuestionResponseDto>.SuccessResponse(result.Data, "Question fetched succesfully"));
         }
 
+        [HttpGet("{surveySessionId:guid}/result")]
+        public async Task<ActionResult> GetSurveySessionResult([FromRoute] Guid surveySessionId)
+        {
+            var result = await _surveySessionService.GetSurveySessionResultAsync(surveySessionId);
+
+
+            if (!result.Success)
+            {
+                return BadRequest(CustomResponse<string>.ErrorResponse(result.Message));
+            }
+
+            return Ok(CustomResponse<SurveySessionResultDto>.SuccessResponse(result.Data, "Question fetched succesfully"));
+        }
+
         [HttpPost("answer")]
         public async Task<ActionResult> SubmitAnswer([FromBody] SubmitSurveyAnswerDto dto)
         {
