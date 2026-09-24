@@ -135,17 +135,17 @@ namespace Selfaware.Features.Survey
 
 
             var survey = new SurveyDto(
-                  Id: query.Id,
-                  RunById: query.RunById,
-                   Quiz: new QuizForSurveyDto(
-        QuizId: query.Quiz.Id,
-        QuizType:query.Quiz.QuizType,
-        QuizStatus: query.Quiz.QuizStatus,
-        QuestionCount: query.Quiz.Questions.Count,
-        Questions: null,
-        Description: query.Quiz.Description,
-        Title: query.Quiz.Title
-                    ),
+            Id: query.Id,
+            RunById: query.RunById,
+            Quiz: new QuizForSurveyDto(
+                QuizId: query.Quiz.Id,
+                QuizType:query.Quiz.QuizType,
+                QuizStatus: query.Quiz.QuizStatus,
+                QuestionCount: query.Quiz.Questions.Count,
+                Questions: null,
+                Description: query.Quiz.Description,
+                Title: query.Quiz.Title
+                                ),
              ShareCode: query.ShareCode,
              CompletedBy: query.CompletedBy,
              IsActive: query.IsActive,

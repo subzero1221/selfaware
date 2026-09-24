@@ -10,12 +10,13 @@ namespace Selfaware.Features.Survey.SurveySession.Dtos
         DateTime StartedAt,
         bool IsCompleted,
         string Nickname,
+        string? Email = null,
         SurveyDto? Survey = null,  
         string? UserId = null,
         DateTime? CompletedAt = null
     );
 
-    public record StartSurveySessionDto(Guid SurveyId, string NickName);
+    public record StartSurveySessionDto(Guid SurveyId, string NickName, string? Email = null);
     public record GetQuestionForSurveySessionDto(string ShareCode, int Order);
 
     public record UserAnswerDto(Guid Id, Guid SurveySessionId, Guid QuestionId, Guid OptionId, DateTime SubmittedAt, string? UserId = null);

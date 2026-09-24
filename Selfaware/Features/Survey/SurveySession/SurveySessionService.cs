@@ -21,6 +21,27 @@ namespace Selfaware.Features.Survey.SurveySession
         public async Task<ServiceResult<SurveySessionDto>> StartSurveySessionAsync(StartSurveySessionDto dto)
         {
 
+            var survey = await _context.Surveys
+                            .Where(s => s.Id == dto.SurveyId)
+                            .Select(s => new { s.Id, s.AllowAnonymous, s.IsActive })
+                            .FirstOrDefaultAsync();
+
+            if (survey == null)
+            {
+                return ServiceResult<SurveySessionDto>.Failed("Survey not found");
+            }
+
+            if (!survey.IsActive)
+            {
+                return ServiceResult<SurveySessionDto>.Failed("Survey is currently inactive");
+            }
+
+            
+            if (!survey.AllowAnonymous && string.IsNullOrWhiteSpace(dto.Email))
+            {
+                return ServiceResult<SurveySessionDto>.Failed("For Session start please provide Email");
+            }
+
             Guid surveySessionId = Guid.NewGuid();
             Guid anonymousToken = Guid.NewGuid();
 
@@ -31,6 +52,7 @@ namespace Selfaware.Features.Survey.SurveySession
                 SurveyId = dto.SurveyId,
                 AnonymousToken = anonymousToken.ToString(),
                 Nickname = dto.NickName ?? null,
+                Email = dto.Email??null
             };
 
             _context.SurveySessions.Add(surveySession);
@@ -59,6 +81,7 @@ namespace Selfaware.Features.Survey.SurveySession
                         s.StartedAt,
                         s.IsCompleted,
                         s.Nickname ?? "",
+                        s.Email??null,
                         new SurveyDto(
                             s.Survey.Id,
                             s.Survey.RunById,

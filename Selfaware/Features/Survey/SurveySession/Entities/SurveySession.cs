@@ -11,6 +11,7 @@ namespace Selfaware.Features.Survey.SurveySession.Entities
         public string? UserId { get; set; }
         public string AnonymousToken { get; set; } = string.Empty;
 
+        public string? Email { get; set; } = string.Empty;
         public string? Nickname { get; set; } = string.Empty;
         public DateTime StartedAt { get; set; } = DateTime.UtcNow;
         public DateTime? CompletedAt { get; set; }
