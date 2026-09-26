@@ -25,6 +25,8 @@ namespace Selfaware.Infrastructure.Data
 
         public DbSet<SurveySession> SurveySessions { get; set; }
 
+        public DbSet<Subscale> Subscales { get; set; }
+
         public DbSet<Player> Players { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

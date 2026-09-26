@@ -126,21 +126,50 @@ namespace Selfaware.Features.Quizzes
            CreateQuestionDto dto
        )
         {
-            var questionsCount = await _context.Questions
-                .Where(q =>
-                    q.QuizId == quizId && q.Quiz.CreatedById == userId
-                ).CountAsync();
+
+            var quiz = await _context.Quizzes
+        .Include(q => q.Subscales)
+        .FirstOrDefaultAsync(q => q.Id == quizId);
+
+            if (quiz == null)
+                return ServiceResult<Guid>.Failed("Quiz not found.");
+
+            Subscale? subscale = null;
+
+          
+            if (!string.IsNullOrWhiteSpace(dto.SubscaleName))
+            {
+                string trimmedName = dto.SubscaleName.Trim();
+
+                subscale = quiz.Subscales
+                    .FirstOrDefault(s => s.Name.Equals(trimmedName, StringComparison.OrdinalIgnoreCase));
+
+                if (subscale == null)
+                {
+                    subscale = new Subscale
+                    {
+                        Id = Guid.NewGuid(),
+                        QuizId = quizId,
+                        Name = trimmedName
+                    };
+
+                    _context.Subscales.Add(subscale);
+                }
+            }
+
+
             Guid questionId = Guid.NewGuid();
 
             var newQuestion = new Question
             {
                 Id = questionId,
                 QuizId = quizId,
-                Order = questionsCount + 1,
+                Order = dto.Order > 0 ? dto.Order : quiz.QuestionCount + 1,
                 Text = dto.Text,
                 ImageUrl = dto.ImageUrl,
                 ImagePublicId = dto.ImagePublicId,
-                Type = QuestionType.SingleChoice,
+                Type = dto.QuestionType,
+                Subscale = subscale,
                 Options = dto.Options.Select(opt => new Option
                 {
                     Id = Guid.NewGuid(),

@@ -6,6 +6,7 @@ namespace Selfaware.Features.Quizzes.DTOs
     public record CreateQuizDto(
         string Title,
         string Description,
+        List<CreateSubscaleDto> Subscales,
         List<CreateQuestionDto> Questions,
         int TimeLimitInMinutes,
         int QuestionCount, 
@@ -17,9 +18,12 @@ namespace Selfaware.Features.Quizzes.DTOs
         List<OptionDto> Options,
         int Order,
         [property: JsonConverter(typeof(JsonStringEnumConverter))] QuestionType QuestionType,
+        string? SubscaleName,
         string? ImageUrl = null,
         string? ImagePublicId = null
     );
+
+    public record CreateSubscaleDto(string Name, string Description);
 
     public record PutQuizDto(
         Guid Id,

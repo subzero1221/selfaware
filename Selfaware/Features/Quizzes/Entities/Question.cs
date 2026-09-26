@@ -7,7 +7,7 @@ namespace Selfaware.Features.Quizzes.Entities
         public Guid Id { get; set; }
         public Guid QuizId { get; set; }
 
-        public Quiz Quiz { get; set; }
+        public Quiz Quiz { get; set; } = null!;
 
         public string Text { get; set; } = string.Empty;
 
@@ -19,6 +19,9 @@ namespace Selfaware.Features.Quizzes.Entities
         public QuestionType Type { get; set; } = QuestionType.SingleChoice;
 
         public List<Option> Options { get; set; } = new();
+
+        public Guid? SubscaleId { get; set; }
+        public Subscale? Subscale { get; set; }
     }
 
     public class Option
@@ -39,6 +42,8 @@ namespace Selfaware.Features.Quizzes.Enums
         SingleChoice = 0,
         MultipleChoice = 1,
         PsychologicalScale = 2,
+
+        Likert = 3
     }
 
 }

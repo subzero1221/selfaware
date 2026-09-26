@@ -21,6 +21,8 @@ namespace Selfaware.Features.Quizzes.Entities
         public List<Question> Questions { get; set; } = new();
         public string CreatedById { get; set; } = string.Empty;
         public ApplicationUser CreatedBy { get; set; } = null!;
+
+        public List<Subscale> Subscales { get; set; } = new();
     }
 }
 

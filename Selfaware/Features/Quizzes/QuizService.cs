@@ -25,15 +25,31 @@ namespace Selfaware.Features.Quizzes
             bool exists = await _context.Quizzes.AnyAsync(q => q.Title == dto.Title);
             if (exists)
                 return ServiceResult<QuizDto>.Failed("A quiz with this title already exists.");
+            Guid quizId = Guid.NewGuid();
+
+            var subscaleMap = dto.Subscales
+                .Where(s => !string.IsNullOrWhiteSpace(s.Name))
+                .ToDictionary(
+                    s => s.Name.Trim(),
+                    s => new Subscale
+                    {
+                        Id = Guid.NewGuid(),
+                        QuizId = quizId,
+                        Name = s.Name.Trim(),
+                        Description = s.Description
+                    },
+                StringComparer.OrdinalIgnoreCase
+        );
 
             var quiz = new Quiz
             {
-                Id = Guid.NewGuid(),
+                Id = quizId,
                 Title = dto.Title,
                 Description = dto.Description,
                 QuestionCount = dto.Questions.Count,
                 TimeLimit = dto.TimeLimitInMinutes,
                 QuizType = dto.QuizType,
+                Subscales = subscaleMap.Values.ToList(),
                 Questions = dto
                     .Questions.Select(
                         (question, index) =>
@@ -45,15 +61,15 @@ namespace Selfaware.Features.Quizzes
                                 Order = index + 1,
                                 Options = question
                                     .Options.Select(
-                                        (o, index) => new Option { Text = o.Text, Score = o.Score ?? 0}
+                                        (o, index) => new Option { Text = o.Text, Score = o.Score ?? 0 }
                                     )
                                     .ToList(),
-
+                                Subscale = !string.IsNullOrWhiteSpace(question.SubscaleName) && subscaleMap.TryGetValue(question.SubscaleName.Trim(), out var subscale)
+                                ? subscale
+                                : null,
                                 ImageUrl = question.ImageUrl,
                                 ImagePublicId = question.ImagePublicId,
                             }
-
-
                     )
                     .ToList(),
             };
