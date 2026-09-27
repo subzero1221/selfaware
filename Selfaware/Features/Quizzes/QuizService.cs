@@ -155,7 +155,7 @@ namespace Selfaware.Features.Quizzes
                             QuizId = existingQuiz.Id,
                             Text = qDto.Text,
                             Order = Index + 1,
-                            Type = qDto.Type,
+                            Type = qDto.QuestionType,
                             Options = qDto
                                 .Options.Select(oDto => new Option
                                 {
@@ -288,7 +288,7 @@ namespace Selfaware.Features.Quizzes
                     .Questions.Select(question => new QuestionDto(
                         Id: question.Id,
                         Text: question.Text,
-                        Type: question.Type,
+                        QuestionType: question.Type,
                         Order: question.Order,
                         Options: question
                             .Options.Select(option => new OptionDto(
@@ -349,7 +349,7 @@ namespace Selfaware.Features.Quizzes
                     .Questions.Select(question => new QuestionDto(
                         Id: question.Id,
                         Text: question.Text,
-                        Type: question.Type,
+                        QuestionType: question.Type,
                         Order: question.Order,
                         Options: question
                             .Options.Select(option => new OptionDto(

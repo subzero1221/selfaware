@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Selfaware.Features.Quizzes.DTOs;
-using Selfaware.Features.Survey.SurveySession.Dtos;
+using Selfaware.Features.Quizzes.Enums;
 using Selfaware.Features.Survey.DTOs;
+using Selfaware.Features.Survey.SurveySession.Dtos;
 using Selfaware.Features.Survey.SurveySession.Entities;
 using Selfaware.Infrastructure.Data;
 using Selfaware.Shared.Models;
@@ -132,10 +133,11 @@ namespace Selfaware.Features.Survey.SurveySession
                 .Where(q => q.Order > order)
                 .OrderBy(q => q.Order)
                 .Select(q => new QuestionResultDto(
-                    q.Id, q.Text, q.Order,
+                    q.Id, q.Text, q.Order, q.Type,
                     _context.Answers.Count(a => a.QuestionId == q.Id && a.SurveySession.SurveyId == surveyId),
+                    
                     q.Options.OrderBy(o => o.Id).Select(opt => new OptionResultDto(
-                        opt.Id, opt.Text,
+                        opt.Id, opt.Text, opt.Score,
                         _context.Answers.Count(a => a.OptionId == opt.Id && a.SurveySession.SurveyId == surveyId)
                     )).ToList(),
                     q.ImageUrl, q.ImagePublicId
@@ -184,10 +186,10 @@ namespace Selfaware.Features.Survey.SurveySession
                 .Where(s => s.Id == surveySessionId)
                 .Select(s => s.Survey.Quiz.Questions
                 .Select(q => new QuestionResultDto(
-                    q.Id, q.Text, q.Order,
+                    q.Id, q.Text, q.Order, q.Type,
                     _context.Answers.Count(a => a.QuestionId == q.Id && a.SurveySession.SurveyId == targetSurveyId),
                     q.Options.OrderBy(o => o.Id).Select(opt => new OptionResultDto(
-                        opt.Id, opt.Text,
+                        opt.Id, opt.Text,opt.Score,
                         _context.Answers.Count(a => a.OptionId == opt.Id && a.SurveySession.SurveyId == targetSurveyId)
                     )).ToList(),
                     q.ImageUrl, q.ImagePublicId

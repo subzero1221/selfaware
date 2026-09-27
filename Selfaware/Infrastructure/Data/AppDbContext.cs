@@ -52,9 +52,9 @@ namespace Selfaware.Infrastructure.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            modelBuilder.Entity<Quiz>()
-    .Property(q => q.QuizType)
-    .HasConversion<string>();
+                modelBuilder.Entity<Quiz>()
+                        .Property(q => q.QuizType)
+                        .HasConversion<string>();
         }
 
         public override Task<int> SaveChangesAsync(
