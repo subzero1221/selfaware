@@ -207,8 +207,9 @@ namespace Selfaware.Features.Survey.SurveySession
                                   a.Id,
                                   a.SurveySessionId,
                                   a.QuestionId,
-                                  a.OptionId,
-                                  a.SubmittedAt
+                                  a.SubmittedAt,
+                                  a.OptionId??a.OptionId
+                                 
                               ))
                                 .ToListAsync();
 
@@ -243,6 +244,7 @@ namespace Selfaware.Features.Survey.SurveySession
                 SurveySessionId = dto.SurveySessionId,
                 QuestionId = dto.QuestionId,
                 OptionId = dto.OptionId,
+                TextAnswer = dto.TextAnswer,
                 SubmittedAt = DateTime.UtcNow,
                 UserId = userId
             };

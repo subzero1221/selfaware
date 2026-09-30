@@ -43,7 +43,8 @@ namespace Selfaware.Features.Quizzes.Enums
         MultipleChoice = 1,
         PsychologicalScale = 2,
 
-        Likert = 3
+        Likert = 3,
+        ShortAnswer = 4,
     }
 
 }

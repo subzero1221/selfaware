@@ -33,6 +33,8 @@ namespace Selfaware.Features.User
             return Ok(CustomResponse<UserDto>.SuccessResponse(result.Data, result.Message));
         }
 
+        
+
         [Authorize]
         [HttpPatch("me")]
         public async Task<IActionResult> UpdateMe([FromBody] UpdateUserDto dto)
@@ -76,5 +78,6 @@ namespace Selfaware.Features.User
 
             return Ok(CustomResponse<UserDto>.SuccessResponse(null, result.Message));
         }
+
     }
 }

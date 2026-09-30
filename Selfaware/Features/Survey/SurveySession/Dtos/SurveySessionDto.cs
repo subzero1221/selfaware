@@ -21,8 +21,8 @@ namespace Selfaware.Features.Survey.SurveySession.Dtos
     public record StartSurveySessionDto(Guid SurveyId, string NickName, string? Email = null);
     public record GetQuestionForSurveySessionDto(string ShareCode, int Order);
 
-    public record UserAnswerDto(Guid Id, Guid SurveySessionId, Guid QuestionId, Guid OptionId, DateTime SubmittedAt, string? UserId = null);
-    public record SubmitSurveyAnswerDto(Guid SurveySessionId, Guid QuestionId, Guid OptionId, string? UserId = null);
+    public record UserAnswerDto(Guid Id, Guid SurveySessionId, Guid QuestionId, DateTime SubmittedAt, Guid? OptionId, string? TextAnswer = null, string? UserId = null);
+    public record SubmitSurveyAnswerDto(Guid SurveySessionId, Guid QuestionId, Guid OptionId, string? TextAnswer = null, string? UserId = null);
 
     public record SurveySessionResultDto(IEnumerable<QuestionResultDto> Questions, IList<UserAnswerDto> UserAnswers);
     public record NextQuestionResponseDto(

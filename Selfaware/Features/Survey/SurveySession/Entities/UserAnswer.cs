@@ -10,7 +10,8 @@ namespace Selfaware.Features.Survey.SurveySession.Entities
             
             public Guid SurveySessionId { get; set; }
 
-        public Guid OptionId { get; set; }
+        public Guid? OptionId { get; set; }
+        public string? TextAnswer { get; set; }
         public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
 
         public SurveySession SurveySession { get; set; } = null!;
